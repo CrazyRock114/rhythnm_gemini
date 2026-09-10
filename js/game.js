@@ -105,7 +105,7 @@ const Game = {
       this.combo = 0;
       this.whiffs++;
       AudioEngine.sfxWhiff();
-      this.addEffect('挥空…', '#9a94b8');
+      this.addEffect(I18n.t('judge_whiff'), '#9a94b8');
       this.level.onWhiff(this);
       return;
     }
@@ -115,7 +115,7 @@ const Game = {
       best.result = 'wrong';
       this.judges.miss++;
       this.combo = 0;
-      this.feedback('miss', '按错了!', '#e85d5d');
+      this.feedback('miss', I18n.t('judge_wrong_key'), '#e85d5d');
       this.level.onJudge(this, best, 'miss');
       return;
     }
@@ -134,7 +134,7 @@ const Game = {
     this.score += res === 'perfect' ? 2 : 1;
     this.combo++;
     if (this.combo > this.maxCombo) this.maxCombo = this.combo;
-    this.feedback(res, res === 'perfect' ? 'PERFECT!' : 'GOOD', res === 'perfect' ? '#ffd94d' : '#7de38b');
+    this.feedback(res, res === 'perfect' ? I18n.t('judge_perfect') : I18n.t('judge_good'), res === 'perfect' ? '#ffd94d' : '#7de38b');
     this.level.onJudge(this, best, res);
   },
 
@@ -153,7 +153,7 @@ const Game = {
       this.judges.miss++;
       this.combo = 0;
       AudioEngine.sfxMiss();
-      this.addEffect(t < endT ? '太早松开!' : '太晚松开!', '#e85d5d');
+      this.addEffect(t < endT ? I18n.t('judge_early') : I18n.t('judge_late'), '#e85d5d');
       if (this.level.onRelease) this.level.onRelease(this, n, 'miss');
     } else {
       n.state = 'hit';
@@ -162,7 +162,7 @@ const Game = {
       this.judges[overall]++;
       this.combo++;
       if (this.combo > this.maxCombo) this.maxCombo = this.combo;
-      this.addEffect(overall === 'perfect' ? 'PERFECT!' : 'GOOD', overall === 'perfect' ? '#ffd94d' : '#7de38b');
+      this.addEffect(overall === 'perfect' ? I18n.t('judge_perfect') : I18n.t('judge_good'), overall === 'perfect' ? '#ffd94d' : '#7de38b');
       if (this.level.onRelease) this.level.onRelease(this, n, relRes);
     }
   },
@@ -188,7 +188,7 @@ const Game = {
         n.state = 'miss';
         this.judges.miss++;
         this.combo = 0;
-        this.feedback('miss', 'MISS', '#e85d5d');
+        this.feedback('miss', I18n.t('judge_miss'), '#e85d5d');
         this.level.onJudge(this, n, 'miss');
       }
       // 长按音符：一直按住不放，超过松开判定窗 → MISS（灌太满）
@@ -197,7 +197,7 @@ const Game = {
         this.judges.miss++;
         this.combo = 0;
         AudioEngine.sfxMiss();
-        this.addEffect('没松开!', '#e85d5d');
+        this.addEffect(I18n.t('judge_unreleased'), '#e85d5d');
         if (this.level.onRelease) this.level.onRelease(this, n, 'over');
       }
     }
@@ -220,11 +220,12 @@ const Game = {
     this.stop();
     const max = this.chart.length * 2;
     const acc = max > 0 ? this.score / max : 0;
-    let rank, comment;
-    if (acc >= 0.9) { rank = 'S'; comment = '太出色了！节奏感爆棚！'; }
-    else if (acc >= 0.75) { rank = 'A'; comment = '相当不错！'; }
-    else if (acc >= 0.55) { rank = 'B'; comment = '还行，再加把劲！'; }
-    else { rank = 'C'; comment = '嗯……多练练吧。'; }
+    let rank;
+    if (acc >= 0.9) rank = 'S';
+    else if (acc >= 0.75) rank = 'A';
+    else if (acc >= 0.55) rank = 'B';
+    else rank = 'C';
+    const comment = I18n.getRankComment(rank);
     if (this.onFinish) {
       this.onFinish({
         rank, comment, acc,
@@ -271,7 +272,7 @@ const Game = {
     // 判定浮字
     for (const e of this.effects) {
       ctx.globalAlpha = 1 - e.t / 0.7;
-      const size = e.text === 'PERFECT!' ? 40 : 32;
+      const size = (e.text === 'PERFECT!' || e.text === '¡PERFECTO!') ? 40 : 32;
       Draw.text(ctx, e.text, 480, 180 - e.t * 70, size, e.color);
     }
     ctx.globalAlpha = 1;
@@ -280,7 +281,7 @@ const Game = {
     Draw.text(ctx, this.level.name, 16, 24, 18, 'rgba(255,255,255,0.8)', 'left');
     if (this.combo >= 2) {
       const size = 26 + Math.min(this.combo, 30) * 0.4;
-      Draw.text(ctx, this.combo + ' 连击!', 480, 46, size, '#ffd94d');
+      Draw.text(ctx, this.combo + ' ' + I18n.t('combo'), 480, 46, size, '#ffd94d');
     }
     const prog = Math.max(0, Math.min(1, Conductor.songBeat() / this.totalBeats));
     ctx.fillStyle = 'rgba(255,255,255,0.18)';

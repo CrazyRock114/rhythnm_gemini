@@ -17,9 +17,9 @@
  * ============================================================== */
 const LevelClappy = {
   id: 'clappy',
-  name: '第 7 关 · 拍手三人组',
-  desc: '听前两声拍手，用同样的间隔补上第三声！后半段会变成半拍间隔。',
-  hint: '空格 / 点击 = 拍手 · Esc = 退出',
+  get name() { return I18n.getLevelName('clappy'); },
+  get desc() { return I18n.getLevelDesc('clappy'); },
+  get hint() { return I18n.getLevelHint('clappy'); },
   bpm: 96,
   totalBeats: 50,
 
@@ -204,11 +204,11 @@ const LevelClappy = {
         }
       }
     }
-    Draw.text(ctx, '▼ 你', this.CATX[2], 292, 22, '#ffb3b3');
+    Draw.text(ctx, I18n.t('you_arrow'), this.CATX[2], 292, 22, '#ffb3b3');
 
-    // 教学文字与变奏预告
+    // 教学提示
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听前两声拍手，按同样的间隔补第三声！', 480, 130, 28, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_clappy_desc'), 480, 130, 28, 'rgba(255,255,255,0.95)');
     } else if (this._cur.fastTip && beat >= 33 && beat < 36) {
       Draw.text(ctx, '注意听：间隔变成半拍了！', 480, 130, 30, '#ffd94d');
     }
@@ -226,9 +226,9 @@ const LevelClappy = {
  * ============================================================== */
 const LevelSpaceball = {
   id: 'spaceball',
-  name: '第 8 关 · 太空棒球',
-  desc: '听投球声判断球速：普通「咻」=1拍后挥棒，高飘「叮」=2拍，短促「兹」=半拍！',
-  hint: '空格 / 点击 = 挥棒 · Esc = 退出',
+  get name() { return I18n.getLevelName('spaceball'); },
+  get desc() { return I18n.getLevelDesc('spaceball'); },
+  get hint() { return I18n.getLevelHint('spaceball'); },
   bpm: 100,
   totalBeats: 42,
 
@@ -491,7 +491,7 @@ const LevelSpaceball = {
     }
 
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听投球声：「咻」=1拍 ·「叮」=2拍 ·「兹」=半拍！', 480, 56, 27, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_spaceball_desc'), 480, 56, 27, 'rgba(255,255,255,0.95)');
     }
   }
 };
@@ -507,9 +507,9 @@ const LevelSpaceball = {
  * ============================================================== */
 const LevelCrop = {
   id: 'crop',
-  name: '第 9 关 · 收割庄稼',
-  desc: '菜冒头「啵」一声后，下一拍收！大南瓜要【按住】拔，拔出时松开。',
-  hint: '空格=收菜 · 大南瓜按住再松开 · Esc = 退出',
+  get name() { return I18n.getLevelName('crop'); },
+  get desc() { return I18n.getLevelDesc('crop'); },
+  get hint() { return I18n.getLevelHint('crop'); },
   bpm: 104,
   totalBeats: 36,
 
@@ -647,7 +647,9 @@ const LevelCrop = {
   },
 
   // 普通菜（萝卜）：冒头升起，错过则蔫回土里
+  // 普通菜（根据文化显示：白萝卜/胡萝卜/红辣椒/圆水萝卜）：冒头升起，错过则蔫回土里
   drawVeggie(ctx, n, x, y, st, beat) {
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     const appear = n.beat - 1;
     const p = Math.min(1, (beat - appear) / 0.9);
     const e = 1 - (1 - p) * (1 - p);
@@ -662,23 +664,61 @@ const LevelCrop = {
     ctx.globalAlpha = alpha;
     ctx.translate(x, y + rise);
     ctx.rotate(Math.sin((beat - appear) * Math.PI * 2) * 0.08 * e);
-    // 叶子
-    ctx.fillStyle = '#4caf50';
-    ctx.beginPath(); ctx.ellipse(-6, -34, 5, 14, -0.4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(6, -34, 5, 14, 0.4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(0, -38, 5, 15, 0, 0, Math.PI * 2); ctx.fill();
-    // 白紫圆根
-    ctx.fillStyle = '#f0e6f5';
-    ctx.beginPath(); ctx.arc(0, -14, 14, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#b39ddb';
-    ctx.beginPath(); ctx.arc(0, -18, 14, Math.PI, 0); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.beginPath(); ctx.arc(-4, -18, 4, 0, Math.PI * 2); ctx.fill();
+
+    if (cult === 'ja') {
+      // 日本大根 (Daikon)：洁白萝卜身 + 嫩绿叶羽
+      ctx.fillStyle = '#4caf50';
+      ctx.beginPath(); ctx.ellipse(-6, -38, 5, 16, -0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(6, -38, 5, 16, 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -42, 5, 18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(-10, -22); ctx.lineTo(10, -22); ctx.lineTo(0, 4); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1.5; ctx.stroke();
+    } else if (cult === 'en') {
+      // 美国胡萝卜 (Carrot)：亮橙色锥形胡萝卜 + 翠绿羽叶
+      ctx.fillStyle = '#43a047';
+      ctx.beginPath(); ctx.ellipse(-6, -38, 4, 15, -0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(6, -38, 4, 15, 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -42, 5, 17, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff9800';
+      ctx.beginPath();
+      ctx.moveTo(-10, -22); ctx.lineTo(10, -22); ctx.lineTo(0, 8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f57c00';
+      ctx.fillRect(-7, -16, 14, 2);
+      ctx.fillRect(-5, -8, 10, 2);
+    } else if (cult === 'es') {
+      // 墨西哥红辣椒 (Red Chili)：鲜红饱满辣椒 + 绿色辣椒蒂
+      ctx.fillStyle = '#2e7d32';
+      ctx.fillRect(-3, -34, 6, 10);
+      ctx.beginPath(); ctx.ellipse(0, -24, 10, 5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e53935';
+      ctx.beginPath();
+      ctx.moveTo(-9, -24);
+      ctx.quadraticCurveTo(-11, -8, -2, 6);
+      ctx.quadraticCurveTo(8, -8, 9, -24);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath(); ctx.ellipse(-3, -15, 2, 8, -0.2, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // 中国水灵水萝卜：白紫相间圆萝卜
+      ctx.fillStyle = '#4caf50';
+      ctx.beginPath(); ctx.ellipse(-6, -34, 5, 14, -0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(6, -34, 5, 14, 0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -38, 5, 15, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f0e6f5';
+      ctx.beginPath(); ctx.arc(0, -14, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#b39ddb';
+      ctx.beginPath(); ctx.arc(0, -18, 14, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath(); ctx.arc(-4, -18, 4, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
   },
 
-  // 大南瓜：半埋在土里，按住期间随进度被拔出
+  // 大南瓜：根据文化显示（日本绿皮南瓜/美国万圣南瓜/墨西哥金南瓜/传统南瓜）
   drawPumpkin(ctx, n, x, y, st, beat, spb) {
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     let py = y, rot = 0, alpha = 1, gray = false;
     if (n.state === 'pending') {
       const p = Math.min(1, (beat - (n.beat - 1)) / 0.9);
@@ -691,13 +731,11 @@ const LevelCrop = {
     } else {
       const d = st - (n.doneT != null ? n.doneT : (n.missT != null ? n.missT : st));
       if (n.outcome === 'ok') {
-        // 拔出飞起
         if (d > 0.8) return;
         py = y - 36 - d * 220;
         rot = d * 6;
         alpha = 1 - d / 0.8;
       } else {
-        // 拔断 / 烂在地里：变灰下沉
         const q = Math.min(1, d / 0.6);
         if (q >= 1) return;
         py = y + 10 + q * 18;
@@ -710,10 +748,18 @@ const LevelCrop = {
     ctx.translate(x, py);
     ctx.rotate(rot);
     // 瓜身
-    ctx.fillStyle = gray ? '#8a7a5d' : '#ff9a3d';
+    if (cult === 'ja') {
+      ctx.fillStyle = gray ? '#4a5d4e' : '#1b5e20';
+    } else if (cult === 'en') {
+      ctx.fillStyle = gray ? '#8a7a5d' : '#ff9800';
+    } else if (cult === 'es') {
+      ctx.fillStyle = gray ? '#8a7a5d' : '#f39c12';
+    } else {
+      ctx.fillStyle = gray ? '#8a7a5d' : '#ff9a3d';
+    }
     ctx.beginPath(); ctx.ellipse(0, -16, 30, 26, 0, 0, Math.PI * 2); ctx.fill();
     // 瓜棱
-    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.strokeStyle = cult === 'ja' ? '#0e3a13' : 'rgba(0,0,0,0.18)';
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.ellipse(0, -16, 17, 26, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.beginPath(); ctx.ellipse(0, -16, 7, 26, 0, 0, Math.PI * 2); ctx.stroke();
@@ -783,7 +829,7 @@ const LevelCrop = {
     }
 
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '菜冒头「啵」一声后，下一拍收！大南瓜按住拔！', 480, 56, 26, '#fff');
+      Draw.text(ctx, I18n.t('lv_crop_desc'), 480, 56, 26, '#fff');
     }
   }
 };
@@ -799,9 +845,9 @@ const LevelCrop = {
  * ============================================================== */
 const LevelShooter = {
   id: 'shooter',
-  name: '第 10 关 · 宇宙射击',
-  desc: '听警报声：2 拍后敌人到准星，射击！双连、三连警报要连按。',
-  hint: '空格 / 点击 = 射击 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 112,
   totalBeats: 36,
 
@@ -1034,7 +1080,7 @@ const LevelShooter = {
     }
 
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '警报响后 2 拍，敌人到准星——射击！', 480, 56, 27, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_shooter_desc'), 480, 56, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };

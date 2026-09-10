@@ -18,9 +18,9 @@
  * ============================================================== */
 const LevelRingside = {
   id: 'ringside',
-  name: '第 19 关 · 拳击台',
-  desc: '听教练喊拳路：「pa-pa-pow!」=三连击，「pow!」=单击，「hooold-pow!」=按住重拳！',
-  hint: '空格=出拳 · 按住=重拳 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 115,
   totalBeats: 44,
 
@@ -310,8 +310,8 @@ const LevelRingside = {
       if (beat >= c && beat < c + 2) { cue = { kind }; break; }
     }
     if (cue) {
-      const txt = cue.kind === 'combo' ? 'pa-pa-pow!' : cue.kind === 'combo4' ? 'pa-pa-pa-pow!' : cue.kind === 'single' ? 'pow!' : 'hooold-pow!';
-      const sub = cue.kind === 'combo' ? '三连击！' : cue.kind === 'combo4' ? '四连击！' : cue.kind === 'single' ? '单击！' : '按住重拳！';
+      const txt = cue.kind === 'combo' ? I18n.t('ringside_tri') : cue.kind === 'combo4' ? I18n.t('ringside_tri') : cue.kind === 'single' ? I18n.t('ringside_single') : I18n.t('ringside_hold');
+      const sub = cue.kind === 'combo' ? I18n.t('ringside_sub_combo') : cue.kind === 'combo4' ? I18n.t('ringside_sub_combo4') : cue.kind === 'single' ? I18n.t('ringside_sub_single') : I18n.t('ringside_sub_hold');
       const bx = 255, by = 208;
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = '#26232e';
@@ -385,11 +385,7 @@ const LevelRingside = {
 
     // 教学提示（开头）
     if (beat >= 0 && beat < 4) {
-      if (this._cur.hasCombo4) {
-        Draw.text(ctx, '听教练喊：pa-pa-pow=三连击 · pa-pa-pa-pow=四连击 · pow=单击 · hooold-pow=按住！', 480, 150, 22, '#fff');
-      } else {
-        Draw.text(ctx, '听教练喊：pa-pa-pow=三连击 · pow=单击 · hooold-pow=按住重拳！', 480, 150, 25, '#fff');
-      }
+      Draw.text(ctx, I18n.t('lv_ringside_desc'), 480, 150, 24, '#fff');
     }
   }
 };
@@ -409,9 +405,9 @@ const LevelRingside = {
  * ============================================================== */
 const LevelRemix = {
   id: 'remix',
-  name: '第 21 关 · 大团圆 Remix',
-  desc: '20 种玩法大混曲！段首标题卡告诉你接下来是谁，跟紧别掉链子！',
-  hint: '空格=全部操作 · 打包段 F=拍虫 · 长按段按住 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 112,
   totalBeats: 70,
   usesAlt: true, // 打包段需要副键（F）拍虫
@@ -463,7 +459,7 @@ const LevelRemix = {
 
   // kind 列表 → 段落表（每段 8 拍，start 依次重排，标题卡随段首对齐）
   resolveSections(kinds) {
-    return kinds.map((kind, i) => ({ start: 4 + i * 8, name: this.KIND_NAMES[kind], kind }));
+    return kinds.map((kind, i) => ({ start: 4 + i * 8, name: I18n.getRemixCard(kind), kind }));
   },
 
   // 按段落表一次生成全部结构数据（音符 + 各玩法指令表），内容只依赖段首拍
@@ -1014,7 +1010,7 @@ const LevelRemix = {
       ctx.strokeStyle = '#ffd94d';
       ctx.lineWidth = 4;
       ctx.stroke();
-      Draw.text(ctx, sec.name, 0, 2, 46, '#ffd94d');
+      Draw.text(ctx, I18n.getRemixCard(sec.kind), 0, 2, 46, '#ffd94d');
       ctx.restore();
     }
   },
@@ -1041,7 +1037,7 @@ const LevelRemix = {
     Animals.bird(ctx, 480, 400 + bob, 34, { color: '#4a90d9' });
     Animals.dog(ctx, 620, 402 - bob, 32, { color: '#c98d5e' });
     Animals.alpaca(ctx, 760, 396 + bob, 36, { color: '#f0e6d2' });
-    if (beat >= 0) Draw.text(ctx, '全员集结 · 混曲预备…', 480, 180, 36, '#fff');
+    if (beat >= 0) Draw.text(ctx, I18n.t('remix_ready'), 480, 180, 36, '#fff');
   },
 
   /* ---------- 共享舞台背景：剧场（幕布 + 聚光灯 + 观众 + 木地板） ---------- */

@@ -17,9 +17,9 @@
  * ============================================================== */
 const LevelTapTrial = {
   id: 'taptrial',
-  name: '第 11 关 · 踢踏舞',
-  desc: '三连音！听同伴「哒哒哒」，下一拍换你！后面还有六连音和二连音的变化。',
-  hint: '空格 / 点击 = 踢踏 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 100,
   totalBeats: 40,
 
@@ -259,7 +259,7 @@ const LevelTapTrial = {
         }
         if (dt > 0 && dt < 0.4) {
           ctx.globalAlpha = 1 - dt / 0.4;
-          Draw.text(ctx, '哒', 350, 296 - dt * 55, 26, '#ffe9b3');
+          Draw.text(ctx, I18n.t('tap_da'), 350, 296 - dt * 55, 26, '#ffe9b3');
           ctx.globalAlpha = 1;
         }
       });
@@ -299,15 +299,15 @@ const LevelTapTrial = {
     });
     this.hat(ctx, 650, py, 40);
     if (st - tp.tapT < 0.18) this.dust(ctx, 650, 438, (st - tp.tapT) / Conductor.secPerBeat());
-    Draw.text(ctx, '▼ 你', 650, 300, 22, '#c62828');
+    Draw.text(ctx, I18n.t('you_arrow'), 650, 300, 22, '#c62828');
 
     // 阶段提示
-    if (demo) Draw.text(ctx, '听！', 350, 250, 32, '#ffe9b3');
-    else if (respOn) Draw.text(ctx, '轮到你！', 650, 250, 32, '#7de38b');
+    if (demo) Draw.text(ctx, I18n.t('listen'), 350, 250, 32, '#ffe9b3');
+    else if (respOn) Draw.text(ctx, I18n.t('your_turn'), 650, 250, 32, '#7de38b');
 
     // 教学提示（预备拍）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听同伴「哒哒哒」，下一拍换你「哒哒哒」！', 480, 130, 28, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_taptrial_desc'), 480, 130, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };
@@ -320,9 +320,9 @@ const LevelTapTrial = {
  * ============================================================== */
 const LevelGlee = {
   id: 'glee',
-  name: '第 12 关 · 合唱团',
-  desc: '跟着同伴唱：他们开口你就按住跟唱，他们收声你就松开！',
-  hint: '按住空格 = 跟唱 · 同伴收声时松开 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 92,
   totalBeats: 46,
 
@@ -530,15 +530,15 @@ const LevelGlee = {
         ctx.beginPath();
         ctx.moveTo(m.x + 14, 386); ctx.lineTo(m.x, 392); ctx.lineTo(m.x + 14, 398);
         ctx.closePath(); ctx.fill();
-        Draw.text(ctx, '▼ 你', m.x, 262, 20, '#c62828');
+        Draw.text(ctx, I18n.t('you_arrow'), m.x, 262, 20, '#c62828');
       }
     }
 
     // 指挥口令气泡
     let cue = null;
     for (const n of game.chart) {
-      if (beat >= n.beat - 1 && beat < n.beat - 0.1) cue = { text: '唱！', color: '#2e7d32' };
-      if (beat >= n.beat + n.dur - 0.5 && beat < n.beat + n.dur + 0.25) cue = { text: '停！', color: '#c62828' };
+      if (beat >= n.beat - 1 && beat < n.beat - 0.1) cue = { text: I18n.t('sing'), color: '#2e7d32' };
+      if (beat >= n.beat + n.dur - 0.5 && beat < n.beat + n.dur + 0.25) cue = { text: I18n.t('stop'), color: '#c62828' };
     }
     if (cue) {
       ctx.fillStyle = '#fff';
@@ -606,7 +606,7 @@ const LevelGlee = {
 
     // 教学提示（预备拍）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听到同伴开唱就按住，他们收声你就松！', 480, 130, 27, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_glee_desc'), 480, 130, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };
@@ -618,9 +618,9 @@ const LevelGlee = {
  * ============================================================== */
 const LevelMonk = {
   id: 'monk',
-  name: '第 13 关 · 贪吃和尚',
-  desc: '听数吃包子：唱几个音就吃几下（半拍一下）！',
-  hint: '空格 / 点击 = 吃 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 108,
   totalBeats: 44,
 
@@ -722,25 +722,85 @@ const LevelMonk = {
     game.monk.chewT = Conductor.songTime();
   },
 
-  // 画一个包子
+  // 画食物（根据文化：包子 / 三色团子 / 汉堡 / 墨西哥卷饼）
   bun(ctx, x, y) {
     ctx.save();
     ctx.translate(x, y);
-    ctx.fillStyle = '#fdf6e8';
-    ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#f0e2c8';
-    ctx.beginPath(); ctx.arc(0, -12, 4.5, 0, Math.PI * 2); ctx.fill(); // 顶部褶子
-    ctx.strokeStyle = 'rgba(180,150,110,0.6)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(0, 3, 10, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
-    // 蒸汽
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-    ctx.lineWidth = 2;
-    for (const dx of [-5, 5]) {
+    const lang = (typeof I18n !== 'undefined') ? I18n.lang : 'zh';
+    if (lang === 'ja') {
+      // 三色花见团子（竹签 + 粉/白/绿三色丸子）
+      ctx.strokeStyle = '#d4b483';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0, 16); ctx.lineTo(0, -18); ctx.stroke();
+      // 绿 (艾草)
+      ctx.fillStyle = '#81c784';
+      ctx.beginPath(); ctx.arc(0, 10, 6, 0, Math.PI * 2); ctx.fill();
+      // 白
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(0, 0, 6.5, 0, Math.PI * 2); ctx.fill();
+      // 粉 (樱色)
+      ctx.fillStyle = '#f48fb1';
+      ctx.beginPath(); ctx.arc(0, -10, 6, 0, Math.PI * 2); ctx.fill();
+    } else if (lang === 'en') {
+      // 经典美式迷你汉堡
+      // 下面包
+      ctx.fillStyle = '#e8a858';
+      ctx.beginPath(); ctx.ellipse(0, 8, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
+      // 牛肉饼
+      ctx.fillStyle = '#5d3a17';
+      ctx.fillRect(-13, 2, 26, 5);
+      // 融化芝士
+      ctx.fillStyle = '#ffca28';
+      ctx.beginPath(); ctx.moveTo(-12, 3); ctx.lineTo(0, 6); ctx.lineTo(12, 3); ctx.lineTo(10, 1); ctx.lineTo(-10, 1); ctx.fill();
+      // 生菜
+      ctx.fillStyle = '#66bb6a';
+      ctx.fillRect(-14, -1, 28, 3);
+      // 上面包
+      ctx.fillStyle = '#e8a858';
+      ctx.beginPath(); ctx.arc(0, -2, 14, Math.PI, 0); ctx.fill();
+      // 芝麻
+      ctx.fillStyle = '#fff8e1';
       ctx.beginPath();
-      ctx.moveTo(dx, -18);
-      ctx.quadraticCurveTo(dx + 4, -24, dx, -30);
-      ctx.stroke();
+      ctx.arc(-5, -6, 1.2, 0, Math.PI * 2);
+      ctx.arc(0, -9, 1.2, 0, Math.PI * 2);
+      ctx.arc(6, -6, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (lang === 'es') {
+      // 墨西哥玉米卷 (Taco)
+      // 金黄玉米饼外壳
+      ctx.fillStyle = '#fbc02d';
+      ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI); ctx.fill();
+      // 烤肉馅料
+      ctx.fillStyle = '#6d4c41';
+      ctx.fillRect(-11, -3, 22, 5);
+      // 香菜与番茄丁
+      ctx.fillStyle = '#43a047';
+      ctx.fillRect(-9, -4, 4, 3);
+      ctx.fillRect(2, -4, 4, 3);
+      ctx.fillStyle = '#e53935';
+      ctx.fillRect(-3, -5, 4, 4);
+      ctx.fillRect(7, -4, 3, 3);
+      // 青柠角点缀
+      ctx.fillStyle = '#7cb342';
+      ctx.beginPath(); ctx.arc(10, 8, 4, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // 传统热气腾腾的小笼包/大包子
+      ctx.fillStyle = '#fdf6e8';
+      ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f0e2c8';
+      ctx.beginPath(); ctx.arc(0, -12, 4.5, 0, Math.PI * 2); ctx.fill(); // 顶部褶子
+      ctx.strokeStyle = 'rgba(180,150,110,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(0, 3, 10, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
+      // 蒸汽
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 2;
+      for (const dx of [-5, 5]) {
+        ctx.beginPath();
+        ctx.moveTo(dx, -18);
+        ctx.quadraticCurveTo(dx + 4, -24, dx, -30);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   },
@@ -778,13 +838,17 @@ const LevelMonk = {
     ctx.strokeStyle = '#8a5a3b';
     ctx.lineWidth = 8;
     ctx.beginPath(); ctx.arc(760, 170, 95, 0, Math.PI * 2); ctx.stroke();
-    // 挂轴「禅」
+    // 挂轴/牌匾
+    const word = I18n.t('monk_word');
+    const scrollW = word.length > 2 ? 104 : 76;
+    const scrollX = word.length > 2 ? 116 : 130;
     ctx.fillStyle = '#f7efdc';
-    ctx.fillRect(130, 70, 76, 150);
+    ctx.fillRect(scrollX, 70, scrollW, 150);
     ctx.strokeStyle = '#8a5a3b';
     ctx.lineWidth = 4;
-    ctx.strokeRect(130, 70, 76, 150);
-    Draw.text(ctx, '禅', 168, 145, 52, '#4a3a2a');
+    ctx.strokeRect(scrollX, 70, scrollW, 150);
+    const wordFontSize = word.length > 3 ? 24 : (word.length > 1 ? 32 : 52);
+    Draw.text(ctx, word, scrollX + scrollW / 2, 145, wordFontSize, '#4a3a2a');
     // 榻榻米地面
     Draw.ground(ctx, 420, '#cbb877');
     ctx.strokeStyle = 'rgba(120,100,60,0.35)';
@@ -827,19 +891,21 @@ const LevelMonk = {
     // 唱词气泡：个数 + 逐音点亮的小圆点
     if (cue) {
       const bx = 640, by = 118;
+      const countText = I18n.t('monk_count', { n: cue.k, s: cue.k > 1 ? 's' : '' });
+      const bw = Math.max(152, countText.length * 15 + 30);
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = '#26232e';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(bx - 74, by - 40, 148, 78, 14);
-      else ctx.rect(bx - 74, by - 40, 148, 78, 14);
+      if (ctx.roundRect) ctx.roundRect(bx - bw / 2, by - 40, bw, 78, 14);
+      else ctx.rect(bx - bw / 2, by - 40, bw, 78, 14);
       ctx.fill(); ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(bx + 52, by + 26);
       ctx.lineTo(bx + 88, by + 52);
       ctx.lineTo(bx + 64, by + 18);
       ctx.closePath(); ctx.fill();
-      Draw.text(ctx, cue.k + ' 个！', bx, by - 12, 30, '#c62828');
+      Draw.text(ctx, countText, bx, by - 12, 26, '#c62828');
       for (let i = 0; i < cue.k; i++) {
         ctx.fillStyle = beat >= cue.c + i * 0.5 ? '#e85d5d' : '#d8cfc0';
         ctx.beginPath(); ctx.arc(bx - (cue.k - 1) * 13 + i * 26, by + 18, 7, 0, Math.PI * 2); ctx.fill();
@@ -893,7 +959,7 @@ const LevelMonk = {
 
     // 教学提示（预备拍）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听小鸟唱几个音，包子到嘴边就连吃几下！', 480, 52, 27, 'rgba(90,60,30,0.9)');
+      Draw.text(ctx, I18n.t('lv_monk_desc'), 480, 52, 25, 'rgba(90,60,30,0.9)');
     }
   }
 };
@@ -905,9 +971,9 @@ const LevelMonk = {
  * ============================================================== */
 const LevelPacking = {
   id: 'packing',
-  name: '第 14 关 · 打包小能手',
-  desc: '糖果「叮」=空格接住，虫子「嗡」=F 拍走！别接反了。',
-  hint: '空格=接糖果 · F=拍虫子 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 110,
   totalBeats: 42,
   usesAlt: true,
@@ -1138,9 +1204,9 @@ const LevelPacking = {
     else ctx.rect(706, 116, 216, 104, 8);
     ctx.fill(); ctx.stroke();
     this.candy(ctx, 742, 148, 0);
-    Draw.text(ctx, '= 空格', 812, 148, 24, '#c2285c');
+    Draw.text(ctx, I18n.t('packing_candy'), 812, 148, 24, '#c2285c');
     this.bug(ctx, 744, 192, st, false);
-    Draw.text(ctx, '= F', 812, 192, 24, '#4a2b5c');
+    Draw.text(ctx, I18n.t('packing_bug'), 812, 192, 24, '#4a2b5c');
     // 地面
     Draw.ground(ctx, 470, '#1a1f26');
 
@@ -1252,7 +1318,7 @@ const LevelPacking = {
 
     // 教学提示（预备拍）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '糖果「叮」=空格接住，虫子「嗡」=F 拍走！', 480, 150, 28, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_packing_desc'), 480, 150, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };

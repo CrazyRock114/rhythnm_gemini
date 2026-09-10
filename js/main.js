@@ -19,14 +19,20 @@ const Main = {
 
   MAIN_KEYS: ['Space', 'Enter', 'KeyJ'],
   ALT_KEYS: ['KeyF', 'KeyK'],
-  MODE_NAMES: { easy: '简单', normal: '普通', hard: '困难' },
+  getModeName(m) {
+    return (typeof I18n !== 'undefined') ? I18n.t('diff_' + m) : (m === 'easy' ? '简单' : m === 'normal' ? '普通' : '困难');
+  },
 
   init() {
+    if (typeof I18n !== 'undefined') I18n.init();
     this.canvas = document.getElementById('game-canvas');
     this.ctx = this.canvas.getContext('2d');
     document.body.classList.toggle('is-touch', this.isTouch);
     this.fitCanvas();
     window.addEventListener('resize', () => this.fitCanvas());
+
+    // 语言切换栏监听
+    this.setupLanguageSwitcher();
 
     // 横屏提示的两个选择：强制横屏（CSS 旋转）/ 竖屏继续
     document.getElementById('btn-force-landscape').addEventListener('click', () => {
@@ -53,17 +59,8 @@ const Main = {
     });
 
     // 生成选关卡片
-    const list = document.getElementById('level-list');
-    for (const lv of Levels) {
-      const btn = document.createElement('button');
-      btn.className = 'level-card';
-      btn.innerHTML =
-        '<div class="lv-name">' + lv.name + '</div>' +
-        '<div class="lv-desc">' + lv.desc + '</div>' +
-        '<div class="lv-best" data-lv="' + lv.id + '"></div>';
-      btn.addEventListener('click', () => this.showDiff(lv));
-      list.appendChild(btn);
-    }
+    this.renderLevelCards();
+    this.updateLanguageUI();
 
     // 键盘输入
     window.addEventListener('keydown', (e) => {
@@ -143,6 +140,55 @@ const Main = {
     document.getElementById('hud-tip').classList.toggle('hidden', id !== null);
   },
 
+  setupLanguageSwitcher() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const lang = btn.dataset.lang;
+        if (lang && typeof I18n !== 'undefined') {
+          I18n.setLanguage(lang);
+          this.updateLanguageUI();
+        }
+      });
+    });
+    window.addEventListener('languagechanged', () => this.updateLanguageUI());
+  },
+
+  updateLanguageUI() {
+    if (typeof I18n === 'undefined') return;
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === I18n.lang);
+    });
+
+    this.renderLevelCards();
+
+    if (this.state === 'diff' && this.currentLevel) {
+      document.getElementById('diff-title').textContent = this.currentLevel.name;
+      document.getElementById('diff-desc').textContent = this.currentLevel.desc;
+      this.updateDiffBest(this.currentLevel);
+    }
+
+    if (this.state === 'result' && this._lastStats) {
+      this.updateResultUI(this._lastStats);
+    }
+  },
+
+  renderLevelCards() {
+    const list = document.getElementById('level-list');
+    list.innerHTML = '';
+    for (const lv of Levels) {
+      const btn = document.createElement('button');
+      btn.className = 'level-card';
+      btn.innerHTML =
+        '<div class="lv-name">' + lv.name + '</div>' +
+        '<div class="lv-desc">' + lv.desc + '</div>' +
+        '<div class="lv-best" data-lv="' + lv.id + '"></div>';
+      btn.addEventListener('click', () => this.showDiff(lv));
+      list.appendChild(btn);
+    }
+    this.renderBest();
+  },
+
   showSelect() {
     this.state = 'select';
     this.show('screen-select');
@@ -159,25 +205,31 @@ const Main = {
     this.state = 'diff';
     document.getElementById('diff-title').textContent = lv.name;
     document.getElementById('diff-desc').textContent = lv.desc;
-    const parts = [];
-    for (const m of ['easy', 'normal', 'hard']) {
-      const b = this.best[lv.id + ':' + m];
-      parts.push(this.MODE_NAMES[m] + ' ' + (b || '—'));
-    }
-    document.getElementById('diff-best').textContent = '最佳：' + parts.join(' · ');
+    this.updateDiffBest(lv);
     this.show('screen-diff');
   },
 
+  updateDiffBest(lv) {
+    const parts = [];
+    for (const m of ['easy', 'normal', 'hard']) {
+      const b = this.best[lv.id + ':' + m];
+      parts.push(this.getModeName(m) + ' ' + (b || '—'));
+    }
+    const prefix = (typeof I18n !== 'undefined') ? I18n.t('best_label') : '最佳：';
+    document.getElementById('diff-best').textContent = prefix + parts.join(' · ');
+  },
+
   renderBest() {
+    const prefix = (typeof I18n !== 'undefined') ? I18n.t('best_label') : '最佳：';
     for (const lv of Levels) {
       const el = document.querySelector('.lv-best[data-lv="' + lv.id + '"]');
       if (!el) continue;
       const parts = [];
       for (const m of ['easy', 'normal', 'hard']) {
         const b = this.best[lv.id + ':' + m];
-        if (b) parts.push(this.MODE_NAMES[m] + ' ' + b);
+        if (b) parts.push(this.getModeName(m) + ' ' + b);
       }
-      el.textContent = parts.length ? '最佳：' + parts.join(' · ') : '';
+      el.textContent = parts.length ? prefix + parts.join(' · ') : '';
     }
   },
 
@@ -188,13 +240,13 @@ const Main = {
     this.show(null);
     // 每关的操作提示
     document.getElementById('hud-tip').textContent =
-      lv.hint || '空格 / 点击 = 击打 · Esc = 退出';
+      lv.hint || (typeof I18n !== 'undefined' ? I18n.t('hud_tip_default') : '空格 / 点击 = 击打 · Esc = 退出');
     // 触屏：双键关显示左右分区提示
     const zl = document.getElementById('zone-left');
     const zr = document.getElementById('zone-right');
     if (this.isTouch && lv.usesAlt) {
       zl.textContent = lv.altLabel || 'F';
-      zr.textContent = lv.mainLabel || '空格';
+      zr.textContent = lv.mainLabel ? (lv.mainLabel === '空格' && typeof I18n !== 'undefined' ? I18n.t('key_space') : lv.mainLabel) : ((typeof I18n !== 'undefined') ? I18n.t('key_space') : '空格');
       zl.classList.remove('hidden');
       zr.classList.remove('hidden');
     } else {
@@ -222,23 +274,31 @@ const Main = {
 
   showResult(stats) {
     this.state = 'result';
+    this._lastStats = stats;
     const order = ['C', 'B', 'A', 'S'];
     const key = stats.level.id + ':' + this.currentMode;
     const prev = this.best[key];
     if (!prev || order.indexOf(stats.rank) > order.indexOf(prev)) {
       this.best[key] = stats.rank;
     }
+    this.updateResultUI(stats);
+    this.show('screen-result');
+  },
+
+  updateResultUI(stats) {
     const rankEl = document.getElementById('result-rank');
     rankEl.textContent = stats.rank;
     rankEl.className = 'rank-' + stats.rank;
+    const suffix = (typeof I18n !== 'undefined') ? (' ' + I18n.t('mode_suffix')) : '模式';
     document.getElementById('result-mode').textContent =
-      stats.level.name + ' · ' + this.MODE_NAMES[this.currentMode] + '模式';
-    document.getElementById('result-comment').textContent = stats.comment;
+      stats.level.name + ' · ' + this.getModeName(this.currentMode) + suffix;
+    document.getElementById('result-comment').textContent = (typeof I18n !== 'undefined') ? I18n.getRankComment(stats.rank) : stats.comment;
+    const accLabel = (typeof I18n !== 'undefined') ? I18n.t('acc_label') : '命中率';
+    const comboLabel = (typeof I18n !== 'undefined') ? I18n.t('max_combo_label') : '最大连击';
     document.getElementById('result-stats').innerHTML =
-      '命中率 <b>' + Math.round(stats.acc * 100) + '%</b><br>' +
+      accLabel + ' <b>' + Math.round(stats.acc * 100) + '%</b><br>' +
       'PERFECT <b>' + stats.judges.perfect + '</b> · GOOD <b>' + stats.judges.good + '</b> · MISS <b>' + stats.judges.miss + '</b><br>' +
-      '最大连击 <b>' + stats.maxCombo + '</b>';
-    this.show('screen-result');
+      comboLabel + ' <b>' + stats.maxCombo + '</b>';
   }
 };
 

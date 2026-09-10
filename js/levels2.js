@@ -12,9 +12,9 @@
  * ============================================================== */
 const LevelMarch = {
   id: 'march',
-  name: '第 4 关 · 齐步走',
-  desc: '全队踩什么你就踩什么！休息时仔细听全队演示：低「咚」=接下来踩正拍，高「哒」=接下来踩反拍（曲风也会变！）。',
-  hint: '空格 / 点击 = 跟着脚步声踏步 · Esc = 退出',
+  get name() { return I18n.getLevelName('march'); },
+  get desc() { return I18n.getLevelDesc('march'); },
+  get hint() { return I18n.getLevelHint('march'); },
   bpm: 112,
   totalBeats: 62,
 
@@ -246,7 +246,7 @@ const LevelMarch = {
       ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.stroke();
     }
-    Draw.text(ctx, (gap ? '→' : '') + (shown === 'off' ? '反拍' : '正拍'), 872, 88, 24, '#26232e');
+    Draw.text(ctx, (gap ? '→' : '') + (shown === 'off' ? I18n.t('off_beat') : I18n.t('on_beat')), 872, 88, 24, '#26232e');
 
     // 休息段公告 + 悬浮音符演示（♪ 亮起的顺序就是下一段的节奏）
     if (gap) {
@@ -255,9 +255,9 @@ const LevelMarch = {
       else for (const off of [1, 2]) { if (off < gap.len - 1) demoBeats.push(gap.start + off); }
       const remain = gap.start + gap.len - beat;
       if (remain <= 1) {
-        Draw.text(ctx, '预备…', 480, 190, 40, '#e85d5d');
+        Draw.text(ctx, I18n.t('ready'), 480, 190, 40, '#e85d5d');
       } else {
-        Draw.text(ctx, '休息！听：接下来是【' + (gap.mode === 'off' ? '反拍' : '正拍') + '】',
+        Draw.text(ctx, I18n.t('march_rest', { mode: gap.mode === 'off' ? I18n.t('off_beat') : I18n.t('on_beat') }),
           480, 190, 40, gap.mode === 'off' ? '#8e24aa' : '#1565c0');
       }
       const litColor = gap.mode === 'off' ? '#8e24aa' : '#1565c0';
@@ -270,7 +270,7 @@ const LevelMarch = {
       // 跟踩段开头：「开始！」
       for (const [bs] of this._cur.blocks) {
         if (bs > 4 && beat >= bs && beat < bs + 1) {
-          Draw.text(ctx, '开始！', 480, 190, 44, '#e85d5d');
+          Draw.text(ctx, I18n.t('start'), 480, 190, 44, '#e85d5d');
         }
       }
     }
@@ -318,10 +318,10 @@ const LevelMarch = {
         armR: 0.5 - flop * 0.4
       });
     }
-    Draw.text(ctx, '▼ 你', 450, 278, 22, '#c62828');
+    Draw.text(ctx, I18n.t('you_arrow'), 450, 278, 22, '#c62828');
 
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '跟着全队踩：低「咚」=正拍，高「哒」=反拍！', 480, 120, 27, '#fff');
+      Draw.text(ctx, I18n.t('march_tip'), 480, 120, 27, '#fff');
     }
   }
 };
@@ -332,9 +332,9 @@ const LevelMarch = {
  * ============================================================== */
 const LevelFill = {
   id: 'fill',
-  name: '第 5 关 · 灌油机器人',
-  desc: '机器人走到加油位时【按住】空格灌油，油量灯满时【松开】！小机器人 1 拍，大机器人要按更久。',
-  hint: '按住空格 = 灌油，灯满时松开 · Esc = 退出',
+  get name() { return I18n.getLevelName('fill'); },
+  get desc() { return I18n.getLevelDesc('fill'); },
+  get hint() { return I18n.getLevelHint('fill'); },
   bpm: 96,
   totalBeats: 48,
 
@@ -560,7 +560,7 @@ const LevelFill = {
       ctx.fillRect(this.SX - 9, 250, 18, 116);
     }
 
-    if (beat >= 0 && beat < 4) Draw.text(ctx, '按住灌油，灯满松开！', 480, 130, 30, '#fff');
+    if (beat >= 0 && beat < 4) Draw.text(ctx, I18n.t('fill_tip'), 480, 130, 30, '#fff');
 
     // 机器人队列
     for (const n of game.chart) {
@@ -611,9 +611,9 @@ const LevelFill = {
  * ============================================================== */
 const LevelBirds = {
   id: 'birds',
-  name: '第 6 关 · 蓝鸟合唱团',
-  desc: '听队长唱歌做动作：唱「突突突」=【点按空格】啄米 3 下，唱「昂——」=【按住空格再松开】昂首！',
-  hint: '点按空格 = 啄米 ×3 · 按住再松开 = 昂首 · Esc = 退出',
+  get name() { return I18n.getLevelName('birds'); },
+  get desc() { return I18n.getLevelDesc('birds'); },
+  get hint() { return I18n.getLevelHint('birds'); },
   bpm: 118,
   totalBeats: 56,
 
@@ -769,7 +769,7 @@ const LevelBirds = {
     ctx.beginPath(); ctx.ellipse(300, 448, 20, 10, 0.3, 0, Math.PI * 2); ctx.fill();
 
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听队长唱歌：「突突突」点按 ×3，「昂——」按住再松开！', 480, 110, 25, '#fff');
+      Draw.text(ctx, I18n.t('birds_song_tip'), 480, 110, 25, '#fff');
     }
 
     // 当前指令（指令拍 ~ 回应开始前）
@@ -798,7 +798,7 @@ const LevelBirds = {
     ctx.fillStyle = '#26232e';
     ctx.fillRect(118, 268 + cbob, 44, 10);
     ctx.fillRect(128, 244 + cbob, 24, 26);
-    Draw.text(ctx, '队长', 140, 480, 18, 'rgba(0,0,0,0.5)');
+    Draw.text(ctx, I18n.t('captain'), 140, 480, 18, 'rgba(0,0,0,0.5)');
 
     // 指令气泡：唱词 + 操作
     if (cue) {
@@ -816,8 +816,8 @@ const LevelBirds = {
       ctx.lineTo(bx - 86, by + 52);
       ctx.lineTo(bx - 44, by + 28);
       ctx.closePath(); ctx.fill();
-      Draw.text(ctx, peck ? '突！突！突！' : '昂——！', bx, by - 14, 28, peck ? '#c62828' : '#1565c0');
-      Draw.text(ctx, peck ? '点按空格 ×3' : '按住再松开', bx, by + 14, 18, '#555');
+      Draw.text(ctx, peck ? I18n.t('birds_peck') : I18n.t('birds_stretch'), bx, by - 14, 28, peck ? '#c62828' : '#1565c0');
+      Draw.text(ctx, peck ? I18n.t('birds_tip_peck') : I18n.t('birds_tip_stretch'), bx, by + 14, 18, '#555');
     }
 
     // 两只同伴（在回应窗口做示范动作）
@@ -844,7 +844,7 @@ const LevelBirds = {
       mood: confused ? 'sad' : 'idle'
     });
     if (confused) Draw.text(ctx, '?', 720, 330, 32, '#fff');
-    Draw.text(ctx, '你', 720, 480, 18, 'rgba(0,0,0,0.5)');
+    Draw.text(ctx, I18n.t('you'), 720, 480, 18, 'rgba(0,0,0,0.5)');
 
     // 按键图例（右下角常驻）
     ctx.fillStyle = 'rgba(255,255,255,0.88)';
@@ -852,8 +852,8 @@ const LevelBirds = {
     if (ctx.roundRect) ctx.roundRect(742, 462, 206, 64, 10);
     else ctx.rect(742, 462, 206, 64, 10);
     ctx.fill();
-    Draw.text(ctx, '点按空格 = 啄米 ×3', 845, 484, 17, '#c62828');
-    Draw.text(ctx, '按住再松开 = 昂首', 845, 508, 17, '#1565c0');
+    Draw.text(ctx, I18n.t('birds_tip_peck'), 845, 484, 17, '#c62828');
+    Draw.text(ctx, I18n.t('birds_tip_stretch'), 845, 508, 17, '#1565c0');
   }
 };
 

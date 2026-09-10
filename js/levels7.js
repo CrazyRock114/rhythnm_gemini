@@ -13,9 +13,9 @@
 
 const LevelFrisbee = {
   id: 'frisbee',
-  name: '第 20 关 · 小狗飞盘',
-  desc: '听抛球音数拍：低音=6拍、中音=7拍、高音=8拍！数到就跳——腾空 1.5 拍后与飞盘相遇，那时才知道接没接到！',
-  hint: '空格 / 点击 = 起跳接飞盘 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 100,
   totalBeats: 70,
 
@@ -213,7 +213,7 @@ const LevelFrisbee = {
 
     // 默数阶段提示
     if (blind && game.chart.some(n => n.state === 'pending' && beat >= n.throw && beat < n.beat)) {
-      Draw.text(ctx, '心里默数…', 480, 120, 34, '#1565c0');
+      Draw.text(ctx, I18n.t('frisbee_count'), 480, 120, 34, '#1565c0');
     }
 
     // 主人（戴帽羊驼）：抛球动作
@@ -225,9 +225,9 @@ const LevelFrisbee = {
       stretch: throwing ? 0.35 : 0
     });
     if (throwing) {
-      Draw.text(ctx, '走！', this.OX + 60, 240, 28, '#1565c0');
+      Draw.text(ctx, I18n.t('frisbee_go'), this.OX + 60, 240, 28, '#1565c0');
     }
-    Draw.text(ctx, '主人', this.OX, 470, 18, 'rgba(0,0,0,0.5)');
+    Draw.text(ctx, I18n.t('owner'), this.OX, 470, 18, 'rgba(0,0,0,0.5)');
 
     // 小狗（玩家）：按下起跳，腾空 1.5 拍到最高点（相遇点），3 拍落地
     let dogY = 392;
@@ -251,13 +251,11 @@ const LevelFrisbee = {
       ctx.fillStyle = '#ff5da2';
       ctx.beginPath(); ctx.ellipse(this.DX + 30, dogY - 14, 14, 5, 0.3, 0, Math.PI * 2); ctx.fill();
     }
-    Draw.text(ctx, '▼ 你', this.DX, 470, 20, '#c62828');
+    Draw.text(ctx, I18n.t('you_arrow'), this.DX, 470, 20, '#c62828');
 
     // 教学提示（开头）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, this._cur.ext
-        ? '听抛球音数拍：超低=5 低=6 中=7 高=8，数到就跳！'
-        : '听抛球音数拍：低=6 中=7 高=8，数到就跳！', 480, 120, 28, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_frisbee_desc'), 480, 120, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };

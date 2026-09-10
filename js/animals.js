@@ -115,10 +115,34 @@ const Animals = {
       ctx.strokeRect(-s * 0.06, -s * 0.55, s * 0.12, s * 0.14);
     }
 
-    // 头带
+    // 头带 / 文化头饰
+    const cult = o.culture || (typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh');
     if (o.headband) {
       ctx.fillStyle = o.headband;
       ctx.fillRect(-s * 0.6, -s * 1.08, s * 1.2, s * 0.16);
+    } else if (cult === 'en') {
+      // 英国皇家卫队高绒帽 / 行军帽
+      ctx.fillStyle = '#1e1e24';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(-s * 0.45, -s * 1.85, s * 0.9, s * 0.95, [s * 0.25, s * 0.25, 0, 0]);
+      else ctx.rect(-s * 0.45, -s * 1.85, s * 0.9, s * 0.95);
+      ctx.fill();
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = s * 0.05;
+      ctx.beginPath(); ctx.arc(0, -s * 0.75, s * 0.42, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke();
+    } else if (cult === 'ja') {
+      // 応援団の日章鉢巻
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-s * 0.62, -s * 1.08, s * 1.24, s * 0.16);
+      ctx.fillStyle = '#d32f2f';
+      ctx.beginPath(); ctx.arc(0, -s * 1.0, s * 0.08, 0, Math.PI * 2); ctx.fill();
+    } else if (cult === 'es') {
+      // 墨西哥花冠节庆彩带
+      const flColors = ['#e74c3c', '#f1c40f', '#2ecc71', '#e67e22', '#9b59b6'];
+      for (let fi = -2; fi <= 2; fi++) {
+        ctx.fillStyle = flColors[fi + 2];
+        ctx.beginPath(); ctx.arc(fi * s * 0.22, -s * 1.15, s * 0.11, 0, Math.PI * 2); ctx.fill();
+      }
     }
     ctx.restore();
   },
@@ -127,7 +151,14 @@ const Animals = {
   // 肥啾：大圆身体、呆毛、喙可张开；pose: 'idle'|'peck'|'stretch'
   bird(ctx, x, y, s, o) {
     o = o || {};
-    const color = o.color || '#4a90d9';
+    const cult = o.culture || (typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh');
+    let color = o.color;
+    if (!color) {
+      if (cult === 'ja') color = '#689f38'; // 鶯色 (Uguisu)
+      else if (cult === 'en') color = '#1e88e5'; // Blue Jay
+      else if (cult === 'es') color = '#e74c3c'; // Guacamaya 红金刚鹦鹉
+      else color = '#4a90d9'; // 蓝鸟
+    }
     const pose = o.pose || 'idle';
     ctx.save();
     ctx.translate(x, y);
@@ -315,11 +346,68 @@ Object.assign(Animals, {
     }
     ctx.stroke();
 
-    // 头带
+    // 头带 / 文化服饰
+    const cult = o.culture || (typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh');
     if (o.headband) {
       ctx.fillStyle = o.headband;
       ctx.fillRect(-s * 0.6, -s * 0.98, s * 1.2, s * 0.16);
       ctx.fillRect(s * 0.45, -s * 0.92, s * 0.4, s * 0.1);
+    } else if (cult === 'ja') {
+      // 武士猫：日の丸白頭巾 + 背负武士刀
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-s * 0.65, -s * 0.98, s * 1.3, s * 0.18);
+      ctx.fillStyle = '#d32f2f';
+      ctx.beginPath(); ctx.arc(0, -s * 0.89, s * 0.1, 0, Math.PI * 2); ctx.fill();
+      // 背后武士刀剑柄
+      ctx.save();
+      ctx.translate(-s * 0.55, -s * 0.5);
+      ctx.rotate(-0.6);
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(-s * 0.1, -s * 0.6, s * 0.2, s * 0.6);
+      ctx.fillStyle = '#f1c40f';
+      ctx.fillRect(-s * 0.18, -s * 0.2, s * 0.36, s * 0.08);
+      ctx.restore();
+    } else if (cult === 'en') {
+      // 牛仔猫：宽檐牛仔帽 + 红色三角领巾
+      ctx.fillStyle = '#6d4c41';
+      ctx.beginPath(); ctx.ellipse(0, -s * 1.15, s * 0.95, s * 0.24, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(-s * 0.45, -s * 1.75, s * 0.9, s * 0.65, [s * 0.25, s * 0.25, 0, 0]);
+      else ctx.rect(-s * 0.45, -s * 1.75, s * 0.9, s * 0.65);
+      ctx.fill();
+      ctx.fillStyle = '#d35400';
+      ctx.fillRect(-s * 0.45, -s * 1.25, s * 0.9, s * 0.1);
+      // 领巾
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.28, -s * 0.15);
+      ctx.lineTo(s * 0.28, -s * 0.15);
+      ctx.lineTo(0, s * 0.18);
+      ctx.closePath(); ctx.fill();
+    } else if (cult === 'es') {
+      // 摔角猫 (Luchador)：面具与飘逸披风
+      ctx.fillStyle = '#0984e3';
+      ctx.beginPath(); ctx.arc(0, -s * 0.62, s * 0.64, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fdcb6e';
+      ctx.beginPath(); ctx.arc(-s * 0.25, -s * 0.72, s * 0.22, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(s * 0.25, -s * 0.72, s * 0.22, 0, Math.PI * 2); ctx.fill();
+      Animals.eye(ctx, -s * 0.25, -s * 0.72, s * 0.14, o.mood);
+      Animals.eye(ctx, s * 0.25, -s * 0.72, s * 0.14, o.mood);
+      // 披风
+      ctx.fillStyle = '#d63031';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.4, s * 0.1);
+      ctx.lineTo(-s * 0.95, s * 0.95);
+      ctx.lineTo(-s * 0.2, s * 0.7);
+      ctx.closePath(); ctx.fill();
+    } else {
+      // 默认功夫猫：中国红武术头带与金徽
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(-s * 0.65, -s * 0.98, s * 1.3, s * 0.16);
+      ctx.fillStyle = '#f1c40f';
+      ctx.beginPath(); ctx.arc(0, -s * 0.9, s * 0.08, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#c0392b';
+      ctx.fillRect(s * 0.5, -s * 0.92, s * 0.35, s * 0.1);
     }
     ctx.restore();
   },
@@ -385,11 +473,44 @@ Object.assign(Animals, {
     else ctx.arc(0, hy + s * 0.12, s * 0.08, 0.2 * Math.PI, 0.8 * Math.PI);
     ctx.stroke();
 
-    // 帽子
+    // 帽子 / 文化头饰
+    const cult = o.culture || (typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh');
     if (o.cap) {
       ctx.fillStyle = o.cap;
       ctx.beginPath(); ctx.ellipse(0, hy - s * 0.3, s * 0.3, s * 0.12, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillRect(-s * 0.2, hy - s * 0.62, s * 0.4, s * 0.34);
+    } else if (cult === 'es') {
+      // 墨西哥大草帽 (Sombrero)
+      ctx.fillStyle = '#e67e22';
+      ctx.beginPath(); ctx.ellipse(0, hy - s * 0.25, s * 0.7, s * 0.18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#d35400';
+      ctx.beginPath(); ctx.arc(0, hy - s * 0.45, s * 0.28, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#f1c40f';
+      ctx.fillRect(-s * 0.28, hy - s * 0.32, s * 0.56, s * 0.08);
+      // 红领结
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.16, hy + s * 0.28); ctx.lineTo(s * 0.16, hy + s * 0.28);
+      ctx.lineTo(0, hy + s * 0.36); ctx.closePath(); ctx.fill();
+    } else if (cult === 'en') {
+      // 爵士礼帽 + 领结
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath(); ctx.ellipse(0, hy - s * 0.28, s * 0.45, s * 0.12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(-s * 0.25, hy - s * 0.65, s * 0.5, s * 0.4);
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-s * 0.25, hy - s * 0.35, s * 0.5, s * 0.08);
+      // 领结
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath(); ctx.arc(0, hy + s * 0.32, s * 0.06, 0, Math.PI * 2); ctx.fill();
+    } else if (cult === 'ja') {
+      // 和风羽织衣领
+      ctx.strokeStyle = '#2c3e50';
+      ctx.lineWidth = s * 0.06;
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.22, hy + s * 0.25);
+      ctx.lineTo(0, hy + s * 0.48);
+      ctx.lineTo(s * 0.22, hy + s * 0.25);
+      ctx.stroke();
     }
     ctx.restore();
   },
@@ -454,6 +575,38 @@ Object.assign(Animals, {
       ctx.lineWidth = s * 0.02;
       ctx.beginPath(); ctx.moveTo(0, -s * 0.32); ctx.lineTo(0, -s * 0.18); ctx.stroke();
     }
+
+    // 文化装饰
+    const dogCult = o.culture || (typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh');
+    if (dogCult === 'ja') {
+      // 唐草纹绿色围巾 (Karakusa bandana)
+      ctx.fillStyle = '#27ae60';
+      ctx.beginPath(); ctx.ellipse(0, -s * 0.05, s * 0.42, s * 0.15, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      for (let bi = -2; bi <= 2; bi++) {
+        ctx.beginPath(); ctx.arc(bi * s * 0.16, -s * 0.05, s * 0.035, 0, Math.PI * 2); ctx.fill();
+      }
+    } else if (dogCult === 'en') {
+      // 反戴棒球帽
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath(); ctx.arc(0, -s * 0.72, s * 0.54, Math.PI, 0); ctx.fill();
+      ctx.fillRect(-s * 0.65, -s * 0.74, s * 0.35, s * 0.12);
+    } else if (dogCult === 'es') {
+      // 墨西哥塞拉佩披肩 (Serape)
+      const serapes = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db'];
+      for (let si = 0; si < serapes.length; si++) {
+        ctx.fillStyle = serapes[si];
+        ctx.fillRect(-s * 0.48, s * 0.15 + si * s * 0.1, s * 0.96, s * 0.08);
+      }
+    } else {
+      // 中国风吉祥红项圈与金/玉饰
+      ctx.strokeStyle = '#c0392b';
+      ctx.lineWidth = s * 0.08;
+      ctx.beginPath(); ctx.ellipse(0, -s * 0.08, s * 0.38, s * 0.12, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#2ecc71';
+      ctx.beginPath(); ctx.arc(0, s * 0.08, s * 0.09, 0, Math.PI * 2); ctx.fill();
+    }
+
     ctx.restore();
   }
 });
@@ -519,28 +672,99 @@ Object.assign(Animals, {
     const sq = o.squash || 0;
     ctx.scale(1 + sq * 0.5, 1 - sq);
 
-    // 袈裟（盘腿坐姿的梯形）
-    ctx.fillStyle = '#e8862e';
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.85, s * 0.9);
-    ctx.quadraticCurveTo(-s * 0.8, -s * 0.1, -s * 0.35, -s * 0.25);
-    ctx.lineTo(s * 0.35, -s * 0.25);
-    ctx.quadraticCurveTo(s * 0.8, -s * 0.1, s * 0.85, s * 0.9);
-    ctx.closePath(); ctx.fill();
-    // 斜披带
-    ctx.fillStyle = '#c96a1b';
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.3, -s * 0.22);
-    ctx.lineTo(s * 0.15, -s * 0.22);
-    ctx.lineTo(-s * 0.5, s * 0.9);
-    ctx.lineTo(-s * 0.85, s * 0.9);
-    ctx.closePath(); ctx.fill();
+    // 袈裟 / 文化服装
+    const cult = o.culture || (typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh');
+    if (cult === 'en') {
+      // 50年代美式餐厅服务生/吃汉堡老爹
+      ctx.fillStyle = '#2980b9';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.85, s * 0.9);
+      ctx.quadraticCurveTo(-s * 0.8, -s * 0.1, -s * 0.35, -s * 0.25);
+      ctx.lineTo(s * 0.35, -s * 0.25);
+      ctx.quadraticCurveTo(s * 0.8, -s * 0.1, s * 0.85, s * 0.9);
+      ctx.closePath(); ctx.fill();
+      // 白色围裙
+      ctx.fillStyle = '#ecf0f1';
+      ctx.fillRect(-s * 0.45, s * 0.1, s * 0.9, s * 0.8);
+      // 红色领带
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-s * 0.08, -s * 0.2, s * 0.16, s * 0.35);
+    } else if (cult === 'es') {
+      // 墨西哥查罗服 (Charro)
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.85, s * 0.9);
+      ctx.quadraticCurveTo(-s * 0.8, -s * 0.1, -s * 0.35, -s * 0.25);
+      ctx.lineTo(s * 0.35, -s * 0.25);
+      ctx.quadraticCurveTo(s * 0.8, -s * 0.1, s * 0.85, s * 0.9);
+      ctx.closePath(); ctx.fill();
+      // 红领巾与金色刺绣
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.3, -s * 0.2); ctx.lineTo(s * 0.3, -s * 0.2);
+      ctx.lineTo(0, s * 0.08); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#f1c40f';
+      ctx.lineWidth = s * 0.04;
+      ctx.strokeRect(-s * 0.5, s * 0.22, s * 1.0, s * 0.65);
+    } else if (cult === 'ja') {
+      // 日本禅宗僧侣：深绀色墨衣
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.85, s * 0.9);
+      ctx.quadraticCurveTo(-s * 0.8, -s * 0.1, -s * 0.35, -s * 0.25);
+      ctx.lineTo(s * 0.35, -s * 0.25);
+      ctx.quadraticCurveTo(s * 0.8, -s * 0.1, s * 0.85, s * 0.9);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#7f8c8d';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.3, -s * 0.22);
+      ctx.lineTo(s * 0.15, -s * 0.22);
+      ctx.lineTo(-s * 0.5, s * 0.9);
+      ctx.lineTo(-s * 0.85, s * 0.9);
+      ctx.closePath(); ctx.fill();
+    } else {
+      // 传统中国袈裟
+      ctx.fillStyle = '#e8862e';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.85, s * 0.9);
+      ctx.quadraticCurveTo(-s * 0.8, -s * 0.1, -s * 0.35, -s * 0.25);
+      ctx.lineTo(s * 0.35, -s * 0.25);
+      ctx.quadraticCurveTo(s * 0.8, -s * 0.1, s * 0.85, s * 0.9);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#c96a1b';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.3, -s * 0.22);
+      ctx.lineTo(s * 0.15, -s * 0.22);
+      ctx.lineTo(-s * 0.5, s * 0.9);
+      ctx.lineTo(-s * 0.85, s * 0.9);
+      ctx.closePath(); ctx.fill();
+    }
     // 盘腿
     ctx.beginPath(); ctx.ellipse(0, s * 0.88, s * 0.78, s * 0.16, 0, 0, Math.PI * 2); ctx.fill();
 
     // 光头
     ctx.fillStyle = skin;
     ctx.beginPath(); ctx.arc(0, -s * 0.62, s * 0.52, 0, Math.PI * 2); ctx.fill();
+
+    // 头部配饰 (帽子)
+    if (cult === 'en') {
+      // 餐厅白色纸帽
+      ctx.fillStyle = '#ecf0f1';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(-s * 0.4, -s * 1.45, s * 0.8, s * 0.45, [s * 0.1, s * 0.1, 0, 0]);
+      else ctx.rect(-s * 0.4, -s * 1.45, s * 0.8, s * 0.45);
+      ctx.fill();
+      ctx.fillStyle = '#2980b9';
+      ctx.fillRect(-s * 0.4, -s * 1.1, s * 0.8, s * 0.08);
+    } else if (cult === 'es') {
+      // 墨西哥宽檐帽
+      ctx.fillStyle = '#d35400';
+      ctx.beginPath(); ctx.ellipse(0, -s * 1.05, s * 0.85, s * 0.22, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e67e22';
+      ctx.beginPath(); ctx.arc(0, -s * 1.25, s * 0.35, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#f1c40f';
+      ctx.fillRect(-s * 0.35, -s * 1.12, s * 0.7, s * 0.08);
+    }
 
     // 眼睛（打坐闭眼 / 难过垂眼）
     ctx.strokeStyle = '#333';
@@ -573,11 +797,13 @@ Object.assign(Animals, {
       ctx.beginPath(); ctx.arc(0, -s * 0.48, s * 0.12, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
     }
 
-    // 佛珠
-    ctx.fillStyle = '#8a5a3b';
-    for (let i = 0; i < 7; i++) {
-      const a = Math.PI * 0.25 + (i / 6) * Math.PI * 0.5;
-      ctx.beginPath(); ctx.arc(Math.cos(a) * s * 0.42, -s * 0.12 + Math.sin(a) * s * 0.4, s * 0.05, 0, Math.PI * 2); ctx.fill();
+    // 佛珠 / 饰品 (中/日佩戴佛珠)
+    if (cult === 'zh' || cult === 'ja') {
+      ctx.fillStyle = cult === 'ja' ? '#4a3a2a' : '#8a5a3b';
+      for (let i = 0; i < 7; i++) {
+        const a = Math.PI * 0.25 + (i / 6) * Math.PI * 0.5;
+        ctx.beginPath(); ctx.arc(Math.cos(a) * s * 0.42, -s * 0.12 + Math.sin(a) * s * 0.4, s * 0.05, 0, Math.PI * 2); ctx.fill();
+      }
     }
     ctx.restore();
   }

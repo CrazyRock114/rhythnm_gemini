@@ -19,9 +19,9 @@
  * ============================================================== */
 const LevelMahou = {
   id: 'mahou',
-  name: '第 15 关 · 魔法使',
-  desc: '听咒语「pi-ko-pon!」，咒停瞬间花开——按！慢咒 3 拍，快咒 1.5 拍。',
-  hint: '空格 / 点击 = 开花 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 100,
   totalBeats: 46,
 
@@ -337,12 +337,13 @@ const LevelMahou = {
         Draw.text(ctx, this.SYL[i], 333 + (i - 1) * 72, 118, lit ? 32 : 28,
           lit ? '#e8a13d' : 'rgba(38,35,46,0.3)');
       }
-      if (beat >= active.c + 2 * ivl) Draw.text(ctx, '→ 🌸', 410, 118, 24, '#e85d8a');
+      const flowerIcon = (typeof I18n !== 'undefined' && I18n.lang === 'en') ? '→ 🌹' : ((typeof I18n !== 'undefined' && I18n.lang === 'es') ? '→ 🌼' : '→ 🌸');
+      if (beat >= active.c + 2 * ivl) Draw.text(ctx, flowerIcon, 410, 118, 24, '#e85d8a');
     }
 
     // 教学提示（开头）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听咒语「pi-ko-pon」：咒停的瞬间按空格，花开！', 480, 40, 26, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('mahou_tip'), 480, 40, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };
@@ -355,9 +356,9 @@ const LevelMahou = {
  * ============================================================== */
 const LevelShowtime = {
   id: 'showtime',
-  name: '第 16 关 · 企鹅跳台',
-  desc: '听铃声起跳：高音铃=1拍后跳，低音铃=2拍后跳！',
-  hint: '空格 / 点击 = 起跳 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 108,
   totalBeats: 40,
 
@@ -687,11 +688,11 @@ const LevelShowtime = {
     }
     this.drawBell(ctx, 130, 96, 0.85, ringHi, st);
     this.drawBell(ctx, 224, 108, 1.2, ringLo, st);
-    Draw.text(ctx, '高音=1拍', 130, 140, 15, 'rgba(255,255,255,0.85)');
-    Draw.text(ctx, '低音=2拍', 224, 152, 15, 'rgba(255,255,255,0.85)');
+    Draw.text(ctx, I18n.t('bell_hi'), 130, 140, 15, 'rgba(255,255,255,0.85)');
+    Draw.text(ctx, I18n.t('bell_lo'), 224, 152, 15, 'rgba(255,255,255,0.85)');
     if (hasMid) {
       this.drawBell(ctx, 177, 92, 1.0, ringMid, st);
-      Draw.text(ctx, '中音=1.5拍', 177, 128, 15, 'rgba(255,255,255,0.85)');
+      Draw.text(ctx, I18n.t('bell_mid'), 177, 128, 15, 'rgba(255,255,255,0.85)');
     }
 
     // 按键图例（右下角常驻；含 1.5 拍等待时加一行中音说明）
@@ -706,17 +707,17 @@ const LevelShowtime = {
     }
     ctx.fill();
     if (hasMid) {
-      Draw.text(ctx, '高音铃 = 1 拍后跳', 826, 480, 17, '#1565c0');
-      Draw.text(ctx, '中音铃 = 1.5 拍后跳', 826, 502, 17, '#e8a13d');
-      Draw.text(ctx, '低音铃 = 2 拍后跳', 826, 524, 17, '#c62828');
+      Draw.text(ctx, I18n.t('bell_hi_full'), 826, 480, 16, '#1565c0');
+      Draw.text(ctx, I18n.t('bell_mid_full'), 826, 502, 16, '#e8a13d');
+      Draw.text(ctx, I18n.t('bell_lo_full'), 826, 524, 16, '#c62828');
     } else {
-      Draw.text(ctx, '高音铃 = 1 拍后跳', 826, 490, 17, '#1565c0');
-      Draw.text(ctx, '低音铃 = 2 拍后跳', 826, 512, 17, '#c62828');
+      Draw.text(ctx, I18n.t('bell_hi_full'), 826, 490, 16, '#1565c0');
+      Draw.text(ctx, I18n.t('bell_lo_full'), 826, 512, 16, '#c62828');
     }
 
     // 教学提示（开头）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '听铃声：高音铃 1 拍后跳，低音铃 2 拍后跳！', 480, 40, 26, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.t('lv_showtime_desc'), 480, 40, 26, 'rgba(255,255,255,0.95)');
     }
   }
 };
@@ -729,9 +730,9 @@ const LevelShowtime = {
  * ============================================================== */
 const LevelRatRace = {
   id: 'ratrace',
-  name: '第 17 关 · 老鼠冲刺',
-  desc: '「蹲！」一响就准备：按下蹲下蓄力，听到真哨声 GO 才松开！中途的低音假哨声要忍住！',
-  hint: '按住空格 = 蓄力 · 真哨声松开 · 假哨声忍住 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 100,
   totalBeats: 42,
 
@@ -1008,29 +1009,29 @@ const LevelRatRace = {
 
     // 口令文字
     if (next && beat >= next.beat - 1 && beat < next.beat) {
-      Draw.text(ctx, '蹲！', 330, 300, 40, '#e85d5d');
+      Draw.text(ctx, I18n.t('rat_crouch'), 330, 300, 40, '#e85d5d');
     }
     if (phase === 'hold') {
-      Draw.text(ctx, '按住！', 330, 300, 36, '#e85d5d');
+      Draw.text(ctx, I18n.t('rat_hold'), 330, 300, 36, '#e85d5d');
     }
     // 假哨声期间：忍住！
     for (const n of game.chart) {
       if (n.state === 'holding' && n.fakes.some(f => beat >= n.beat + f && beat < n.beat + f + 1)) {
-        Draw.text(ctx, '忍住！', 480, 190, 34, '#8e24aa');
+        Draw.text(ctx, I18n.t('rat_resist'), 480, 190, 34, '#8e24aa');
       }
     }
     if (cur && cur.goT != null && st - cur.goT < 0.5) {
-      Draw.text(ctx, 'GO!!', 330, 300, 40, '#2e9e4e');
+      Draw.text(ctx, I18n.t('rat_go'), 330, 300, 40, '#2e9e4e');
     }
     // 赛段计数
     const total = game.chart.length;
     const raceNo = Math.min(total,
       game.chart.filter(n => n.beat <= beat).length + (game.chart.some(n => n.beat > beat) ? 1 : 0));
-    Draw.text(ctx, '第 ' + raceNo + ' / ' + total + ' 跑', 930, 30, 19, 'rgba(38,35,46,0.6)', 'right');
+    Draw.text(ctx, I18n.t('round_info', { r: raceNo, total }), 930, 30, 19, 'rgba(38,35,46,0.6)', 'right');
 
     // 教学提示（开头）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '「蹲！」后按住蓄力，真哨声 GO 才松开！', 480, 40, 26, '#fff');
+      Draw.text(ctx, I18n.t('rat_tip'), 480, 40, 26, '#fff');
     }
   }
 };
@@ -1043,9 +1044,9 @@ const LevelRatRace = {
  * ============================================================== */
 const LevelDJ = {
   id: 'dj',
-  name: '第 18 关 · DJ 学校',
-  desc: '按住空格搓碟（音乐停），听「YO!」松开让音乐回来！',
-  hint: '按住=搓碟 · YO!松开 · Esc = 退出',
+  get name() { return I18n.getLevelName(this.id); },
+  get desc() { return I18n.getLevelDesc(this.id); },
+  get hint() { return I18n.getLevelHint(this.id); },
   bpm: 110,
   totalBeats: 38,
 
@@ -1324,7 +1325,7 @@ const LevelDJ = {
         ctx.beginPath();
         ctx.moveTo(620, 222); ctx.lineTo(606, 244); ctx.lineTo(644, 224);
         ctx.closePath(); ctx.fill();
-        Draw.text(ctx, 'YO!', 644, 196, 30, '#fff');
+        Draw.text(ctx, I18n.t('dj_yo'), 644, 196, 30, '#fff');
       }
     }
 
@@ -1340,7 +1341,7 @@ const LevelDJ = {
 
     // 教学提示（开头）
     if (beat >= 0 && beat < 4) {
-      Draw.text(ctx, '按住 = 搓碟（音乐停！），听「YO!」松开！', 480, 128, 26, '#fff');
+      Draw.text(ctx, I18n.t('lv_dj_desc'), 480, 128, 26, '#fff');
     }
   }
 };

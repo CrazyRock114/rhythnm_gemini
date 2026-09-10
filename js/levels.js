@@ -138,8 +138,9 @@ const Draw = {
  * ============================================================== */
 const LevelKarate = {
   id: 'karate',
-  name: '第 1 关 · 飞物击打',
-  desc: '物品飞到圆圈的一瞬间按【空格】击碎！后半段会出现半拍（八分音符）节奏。',
+  get name() { return I18n.getLevelName('karate'); },
+  get desc() { return I18n.getLevelDesc('karate'); },
+  get hint() { return I18n.getLevelHint('karate'); },
   bpm: 100,
   totalBeats: 36,
 
@@ -217,13 +218,14 @@ const LevelKarate = {
 
   onJudge(game, note, res) {
     const st = Conductor.songTime();
+    const theme = CultureTheme.karate.getTheme();
     if (res === 'miss') {
       game.karate.sadT = st;
       note.fallT = st;
     } else {
       game.karate.punchT = st;
       AudioEngine.sfxSmash();
-      game.burst(this.TX, this.TY, note.big ? '#ffb347' : '#c98d5e', note.big ? 26 : 14);
+      game.burst(this.TX, this.TY, theme.burstColor || (note.big ? '#ffb347' : '#c98d5e'), note.big ? 26 : 14);
     }
   },
 
@@ -235,28 +237,102 @@ const LevelKarate = {
     const st = Conductor.songTime();
     const beat = Conductor.songBeat();
     const k = game.karate;
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
+    const theme = CultureTheme.karate.getTheme();
 
-    // 背景：夕阳道场
+    // 背景：根据文化渲染各具风情的环境
     const sky = ctx.createLinearGradient(0, 0, 0, 400);
-    sky.addColorStop(0, '#ff9a56');
-    sky.addColorStop(1, '#ffd93b');
+    sky.addColorStop(0, theme.bgSkyTop);
+    sky.addColorStop(1, theme.bgSkyBottom);
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, 960, 400);
-    ctx.fillStyle = '#fff3c4';
+
+    // 太阳
+    ctx.fillStyle = theme.sunColor;
     ctx.beginPath(); ctx.arc(760, 90, 46, 0, Math.PI * 2); ctx.fill();
+
     // 漂移的云
     const drift = (st * 14) % 1200;
     Draw.cloud(ctx, 1050 - drift, 60, 1, 'rgba(255,240,200,0.75)');
     Draw.cloud(ctx, 760 - drift, 125, 0.65, 'rgba(255,240,200,0.55)');
-    ctx.fillStyle = '#d97b3f';
-    ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(200, 240); ctx.lineTo(420, 400); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(560, 400); ctx.lineTo(760, 260); ctx.lineTo(960, 400); ctx.closePath(); ctx.fill();
-    Draw.ground(ctx, 400, '#8a5a3b');
-    // 草丛
-    ctx.fillStyle = '#6d4527';
-    ctx.beginPath(); ctx.ellipse(180, 415, 90, 12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(620, 432, 130, 14, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(880, 412, 70, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+    if (cult === 'ja') {
+      // 日本文化：远景富士山 + 鸟居 + 飘落樱花
+      ctx.fillStyle = '#4a5b78';
+      ctx.beginPath();
+      ctx.moveTo(320, 400); ctx.lineTo(480, 170); ctx.lineTo(640, 400); ctx.closePath(); ctx.fill();
+      // 富士山雪顶
+      ctx.fillStyle = '#f8f9fa';
+      ctx.beginPath();
+      ctx.moveTo(480, 170); ctx.lineTo(435, 235); ctx.lineTo(460, 245); ctx.lineTo(480, 230); ctx.lineTo(505, 245); ctx.lineTo(525, 235); ctx.closePath(); ctx.fill();
+      // 鸟居剪影
+      ctx.fillStyle = '#b71c1c';
+      ctx.fillRect(720, 220, 16, 180);
+      ctx.fillRect(810, 220, 16, 180);
+      ctx.fillRect(695, 225, 156, 18);
+      ctx.fillRect(710, 255, 126, 12);
+      Draw.ground(ctx, 400, '#543d2b');
+      // 飘落的樱花花瓣
+      ctx.fillStyle = 'rgba(255, 183, 197, 0.85)';
+      for (let si = 0; si < 10; si++) {
+        const sx = ((si * 110 + st * 45) % 1000) - 20;
+        const sy = 80 + (si * 35 + Math.sin(st * 2 + si) * 25) % 360;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(st * 2 + si);
+        ctx.beginPath(); ctx.ellipse(0, 0, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+    } else if (cult === 'en') {
+      // 美国西部：红岩峡谷 + 仙人掌
+      ctx.fillStyle = '#a04000';
+      ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(80, 260); ctx.lineTo(240, 260); ctx.lineTo(320, 400); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(600, 400); ctx.lineTo(680, 290); ctx.lineTo(840, 290); ctx.lineTo(920, 400); ctx.closePath(); ctx.fill();
+      // 仙人掌
+      ctx.fillStyle = '#1e8449';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(830, 270, 16, 130, 8);
+      else ctx.rect(830, 270, 16, 130);
+      ctx.fill();
+      ctx.fillRect(805, 310, 25, 12);
+      ctx.fillRect(805, 290, 12, 25);
+      ctx.fillRect(846, 325, 25, 12);
+      ctx.fillRect(859, 305, 12, 25);
+      Draw.ground(ctx, 400, '#873600');
+    } else if (cult === 'es') {
+      // 墨西哥风情：彩旗 (Papel Picado) + 庄园建筑
+      ctx.fillStyle = '#b9770e';
+      ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(180, 250); ctx.lineTo(380, 400); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(580, 400); ctx.lineTo(760, 270); ctx.lineTo(960, 400); ctx.closePath(); ctx.fill();
+      // 节庆彩旗绳
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, 140); ctx.quadraticCurveTo(480, 200, 960, 140); ctx.stroke();
+      const pColors = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#e67e22'];
+      for (let pi = 0; pi < 12; pi++) {
+        const px = pi * 80 + 30;
+        const py = 140 + Math.sin((px / 960) * Math.PI) * 55;
+        ctx.fillStyle = pColors[pi % pColors.length];
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + 45, py); ctx.lineTo(px + 45, py + 40); ctx.lineTo(px + 22, py + 30); ctx.lineTo(px, py + 40); ctx.closePath(); ctx.fill();
+      }
+      Draw.ground(ctx, 400, '#78281f');
+    } else {
+      // 中国文化：夕阳道场 + 远山古塔 + 草丛
+      ctx.fillStyle = '#d97b3f';
+      ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(200, 240); ctx.lineTo(420, 400); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(560, 400); ctx.lineTo(760, 260); ctx.lineTo(960, 400); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#6e2c00';
+      ctx.fillRect(720, 230, 36, 170);
+      for (let ti = 0; ti < 4; ti++) {
+        const ty = 230 + ti * 38;
+        ctx.beginPath(); ctx.moveTo(705 - ti * 3, ty); ctx.lineTo(771 + ti * 3, ty); ctx.lineTo(738, ty - 14); ctx.closePath(); ctx.fill();
+      }
+      Draw.ground(ctx, 400, '#8a5a3b');
+      ctx.fillStyle = '#6d4527';
+      ctx.beginPath(); ctx.ellipse(180, 415, 90, 12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(620, 432, 130, 14, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(880, 412, 70, 10, 0, 0, Math.PI * 2); ctx.fill();
+    }
 
     // 目标圈（随节拍脉动）
     const pulse = 1 + 0.08 * Math.max(0, Math.sin(beat * Math.PI));
@@ -267,7 +343,7 @@ const LevelKarate = {
     ctx.beginPath(); ctx.arc(this.TX, this.TY, 46 * pulse, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
 
-    // 角色：空手道猫（出拳时右爪前伸）
+    // 角色：猫（出拳时右爪前伸，文化外观）
     const bob = Math.sin(beat * Math.PI) * 6;
     let mood = 'idle';
     if (st - k.sadT < 0.7) mood = 'sad';
@@ -276,21 +352,38 @@ const LevelKarate = {
     Animals.cat(ctx, 125, 345 + bob, 44, {
       color: '#f5a35c',
       mood,
-      headband: '#fff',
+      culture: cult,
       armL: 0.6,
       armR: punching ? -0.15 : 0.6,
       squash: punching ? 0.14 : 0,
       tailUp: punching ? 1 : 0
     });
-    // 出拳冲击波
+
+    // 出拳冲击波 / 剑气 / 特效
     if (punching) {
       const p = 1 - (st - k.punchT) / 0.22;
-      ctx.strokeStyle = 'rgba(255,255,255,' + (0.8 * p).toFixed(3) + ')';
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(this.TX - 30, this.TY, 24 + (1 - p) * 30, -0.6, 0.6); ctx.stroke();
+      if (cult === 'ja') {
+        ctx.strokeStyle = 'rgba(255,255,255,' + (0.95 * p).toFixed(3) + ')';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(this.TX - 20, this.TY, 38 + (1 - p) * 20, -0.8, 0.8); ctx.stroke();
+        Draw.text(ctx, '斬!', this.TX + 10, this.TY - 30, 24, 'rgba(255,255,255,' + p.toFixed(2) + ')');
+      } else if (cult === 'en') {
+        ctx.strokeStyle = 'rgba(241,196,15,' + (0.9 * p).toFixed(3) + ')';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(this.TX - 25, this.TY, 28 + (1 - p) * 28, -0.6, 0.6); ctx.stroke();
+        Draw.text(ctx, 'POW!', this.TX + 12, this.TY - 32, 22, 'rgba(241,196,15,' + p.toFixed(2) + ')');
+      } else if (cult === 'es') {
+        ctx.strokeStyle = 'rgba(46,204,113,' + (0.9 * p).toFixed(3) + ')';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(this.TX - 30, this.TY, 24 + (1 - p) * 30, -0.6, 0.6); ctx.stroke();
+      } else {
+        ctx.strokeStyle = 'rgba(255,255,255,' + (0.8 * p).toFixed(3) + ')';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(this.TX - 30, this.TY, 24 + (1 - p) * 30, -0.6, 0.6); ctx.stroke();
+      }
     }
 
-    // 飞行物
+    // 飞行物（根据文化展现：饭团/木桶/皮纳塔/陶罐）
     for (const n of game.chart) {
       const launch = n.beat - 2;
       if (beat < launch) continue;
@@ -311,17 +404,66 @@ const LevelKarate = {
         ctx.translate(x, y);
         ctx.rotate(beat * 3);
       }
-      // 陶罐 / 岩石
-      ctx.fillStyle = n.big ? '#8d8d99' : '#b5651d';
-      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = n.big ? '#6d6d79' : '#8a4a12';
-      ctx.fillRect(-r, -r * 0.25, r * 2, r * 0.5);
+
+      if (cult === 'ja') {
+        if (n.big) {
+          ctx.fillStyle = '#616161';
+          ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#f5f5f5'; ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.75, -0.6, 0.6); ctx.stroke();
+        } else {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.moveTo(0, -r); ctx.lineTo(-r * 0.9, r * 0.8); ctx.lineTo(r * 0.9, r * 0.8);
+          ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.fillStyle = '#212121';
+          ctx.fillRect(-r * 0.35, r * 0.3, r * 0.7, r * 0.5);
+        }
+      } else if (cult === 'en') {
+        if (n.big) {
+          ctx.fillStyle = '#e65100';
+          ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#bf360c';
+          ctx.fillRect(-r * 0.6, -r * 0.6, r * 1.2, r * 1.2);
+        } else {
+          ctx.fillStyle = '#8d6e63';
+          ctx.beginPath(); ctx.ellipse(0, 0, r, r * 1.15, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(-r, -r * 0.4); ctx.lineTo(r, -r * 0.4); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-r, r * 0.4); ctx.lineTo(r, r * 0.4); ctx.stroke();
+        }
+      } else if (cult === 'es') {
+        if (n.big) {
+          ctx.fillStyle = '#f1c40f';
+          ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#e67e22';
+          ctx.fillRect(-r * 0.7, -r * 0.2, r * 1.4, r * 0.4);
+        } else {
+          ctx.fillStyle = '#e74c3c';
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2); ctx.fill();
+          const piColors = ['#f1c40f', '#3498db', '#2ecc71', '#e67e22'];
+          for (let pii = 0; pii < 4; pii++) {
+            ctx.save();
+            ctx.rotate(pii * Math.PI * 0.5);
+            ctx.fillStyle = piColors[pii];
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.25, -r * 0.6); ctx.lineTo(r * 0.25, -r * 0.6); ctx.lineTo(0, -r * 1.3); ctx.closePath(); ctx.fill();
+            ctx.restore();
+          }
+        }
+      } else {
+        ctx.fillStyle = n.big ? '#8d8d99' : '#b5651d';
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = n.big ? '#6d6d79' : '#8a4a12';
+        ctx.fillRect(-r, -r * 0.25, r * 2, r * 0.5);
+      }
       ctx.restore();
     }
 
-    // 教学提示（开头）
+    // 教学提示（开头，多语言）
     if (beat < 4 && beat >= 0) {
-      Draw.text(ctx, '物品到圆圈时按空格！', 480, 120, 30, 'rgba(255,255,255,0.95)');
+      Draw.text(ctx, I18n.getLevelHint('karate'), 480, 120, 30, 'rgba(255,255,255,0.95)');
     }
   }
 };
@@ -332,8 +474,9 @@ const LevelKarate = {
  * ============================================================== */
 const LevelEcho = {
   id: 'echo',
-  name: '第 2 关 · 节奏模仿',
-  desc: '先听老师演奏一段节奏，灯亮结束后【原样】敲出来！注意休止符。',
+  get name() { return I18n.getLevelName('echo'); },
+  get desc() { return I18n.getLevelDesc('echo'); },
+  get hint() { return I18n.getLevelHint('echo'); },
   bpm: 92,
   totalBeats: 4 + 4 * 16 + 2,
 
@@ -509,7 +652,7 @@ const LevelEcho = {
       cap: '#4a3d80',
       stretch: teacherActive ? 0.6 : 0
     });
-    Draw.text(ctx, '老师', 590, 165, 20, '#b9b3d8');
+    Draw.text(ctx, I18n.t('teacher'), 590, 165, 20, '#b9b3d8');
 
     let mood = 'idle';
     if (st - e.sadT < 0.6) mood = 'sad';
@@ -520,17 +663,17 @@ const LevelEcho = {
       mood,
       stretch: mood === 'happy' ? 0.35 : 0
     });
-    Draw.text(ctx, '你', 580, 425, 20, '#b9b3d8');
+    Draw.text(ctx, I18n.t('you'), 580, 425, 20, '#b9b3d8');
 
     // 阶段文字
     if (!info) {
-      if (beat >= 0 && beat < 4) Draw.text(ctx, '预备…', 480, 250, 34, '#fff');
+      if (beat >= 0 && beat < 4) Draw.text(ctx, I18n.t('ready'), 480, 250, 34, '#fff');
     } else {
-      Draw.text(ctx, '第 ' + (info.round + 1) + ' / ' + this._cur.rounds + ' 轮', 120, 50, 22, '#8f8ab0', 'left');
+      Draw.text(ctx, I18n.t('round_info', { r: info.round + 1, total: this._cur.rounds }), 120, 50, 22, '#8f8ab0', 'left');
       if (info.phase === 'demo') {
-        Draw.text(ctx, '仔细听…', 480, 250, 34, '#ffd94d');
+        Draw.text(ctx, I18n.t('listen'), 480, 250, 34, '#ffd94d');
       } else {
-        Draw.text(ctx, '轮到你了！', 480, 250, 34, '#7de38b');
+        Draw.text(ctx, I18n.t('your_turn'), 480, 250, 34, '#7de38b');
       }
     }
 
@@ -578,8 +721,9 @@ const LevelEcho = {
  * ============================================================== */
 const LevelPong = {
   id: 'pong',
-  name: '第 3 关 · 节奏乒乓',
-  desc: '球飞到右手边时按【空格】打回去！红色的快速球间隔只有半拍，小心！',
+  get name() { return I18n.getLevelName('pong'); },
+  get desc() { return I18n.getLevelDesc('pong'); },
+  get hint() { return I18n.getLevelHint('pong'); },
   bpm: 124,
   totalBeats: 62,
 
@@ -817,7 +961,7 @@ const LevelPong = {
       // 开局前球停在电脑旁
       ctx.fillStyle = '#fff';
       ctx.beginPath(); ctx.arc(this.CX + 44, this.BY - 20, 13, 0, Math.PI * 2); ctx.fill();
-      if (beat >= 0) Draw.text(ctx, '预备…', 480, 120, 30, 'rgba(255,255,255,0.9)');
+      if (beat >= 0) Draw.text(ctx, I18n.t('ready'), 480, 120, 30, 'rgba(255,255,255,0.9)');
     }
   }
 };
