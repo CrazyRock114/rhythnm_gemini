@@ -40,6 +40,7 @@ const I18n = {
       diff_easy: '简单',
       diff_normal: '普通',
       diff_hard: '困难',
+      diff_hell: '🔥 地狱',
       best_label: '最佳：',
       mode_suffix: '模式',
       acc_label: '命中率',
@@ -49,6 +50,7 @@ const I18n = {
       rotate_hint: '建议横屏游玩<br>浏览器不支持横屏也没关系：',
       btn_force_landscape: '强制横屏显示',
       btn_portrait_continue: '竖屏继续玩',
+      diff_locked_hard: '通关普通模式以解锁困难！',
 
       // 判定浮字与提示
       judge_perfect: 'PERFECT!',
@@ -59,6 +61,8 @@ const I18n = {
       judge_early: '太早松开!',
       judge_late: '太晚松开!',
       judge_unreleased: '没松开!',
+      judge_trap: '中计了!',
+      judge_dodge: '避开!',
       combo: '连击!',
 
       // 结算评语
@@ -208,6 +212,7 @@ const I18n = {
       diff_easy: 'Easy',
       diff_normal: 'Normal',
       diff_hard: 'Hard',
+      diff_hell: '🔥 Hell',
       best_label: 'Best: ',
       mode_suffix: 'Mode',
       acc_label: 'Accuracy',
@@ -226,6 +231,8 @@ const I18n = {
       judge_early: 'TOO EARLY!',
       judge_late: 'TOO LATE!',
       judge_unreleased: 'HELD TOO LONG!',
+      judge_trap: 'TRAP!',
+      judge_dodge: 'DODGED!',
       combo: 'COMBO!',
 
       rank_S: 'Incredible! Flawless rhythm sense!',
@@ -371,6 +378,7 @@ const I18n = {
       diff_easy: 'かんたん',
       diff_normal: 'ふつう',
       diff_hard: 'むずかしい',
+      diff_hell: '🔥 地獄',
       best_label: 'ベスト：',
       mode_suffix: 'モード',
       acc_label: '正確さ',
@@ -389,6 +397,8 @@ const I18n = {
       judge_early: 'はやすぎる!',
       judge_late: 'おそすぎる!',
       judge_unreleased: 'はなしてない!',
+      judge_trap: 'トラップ!',
+      judge_dodge: '回避!',
       combo: 'コンボ!',
 
       rank_S: 'パーフェクト！リズム感バツグン！',
@@ -534,6 +544,7 @@ const I18n = {
       diff_easy: 'Fácil',
       diff_normal: 'Normal',
       diff_hard: 'Difícil',
+      diff_hell: '🔥 Infierno',
       best_label: 'Récord: ',
       mode_suffix: 'Modo',
       acc_label: 'Precisión',
@@ -552,6 +563,8 @@ const I18n = {
       judge_early: '¡MUY PRONTO!',
       judge_late: '¡MUY TARDE!',
       judge_unreleased: '¡NO SOLTASTE!',
+      judge_trap: '¡TRAMPA!',
+      judge_dodge: '¡ESQUIVADO!',
       combo: '¡COMBO!',
 
       rank_S: '¡Increíble! ¡Tienes un ritmo legendario!',
@@ -697,6 +710,7 @@ const I18n = {
       diff_easy: 'سهل',
       diff_normal: 'عادي',
       diff_hard: 'صعب',
+      diff_hell: '🔥 جحيم',
       best_label: 'الأفضل: ',
       mode_suffix: 'نمط',
       acc_label: 'الدقة',
@@ -715,6 +729,8 @@ const I18n = {
       judge_early: '!مبكر جداً',
       judge_late: '!متأخر جداً',
       judge_unreleased: '!لم تفلت',
+      judge_trap: '!فخ',
+      judge_dodge: '!مراوغة',
       combo: '!كومبو',
 
       rank_S: 'أسطوري! إحساسك الإيقاعي خارق!',
@@ -861,6 +877,7 @@ const I18n = {
       diff_easy: 'आसान',
       diff_normal: 'सामान्य',
       diff_hard: 'कठिन',
+      diff_hell: '🔥 नरक',
       best_label: 'सर्वश्रेष्ठ: ',
       mode_suffix: 'मोड',
       acc_label: 'सटीकता',
@@ -879,6 +896,8 @@ const I18n = {
       judge_early: 'बहुत जल्दी!',
       judge_late: 'बहुत देर!',
       judge_unreleased: 'छोड़ा नहीं!',
+      judge_trap: 'जाल!',
+      judge_dodge: 'बच गए!',
       combo: 'कॉम्बो!',
 
       rank_S: 'अद्भुत! आपकी लय की समझ लाजवाब है!',

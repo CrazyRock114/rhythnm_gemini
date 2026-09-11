@@ -149,11 +149,43 @@ const LevelKarate = {
 
   setup(mode) {
     if (mode === 'normal') return { bpm: 110, totalBeats: 52 };
-    if (mode === 'hard') return { bpm: 115, totalBeats: 60 };
+    if (mode === 'hard') return { bpm: 122, totalBeats: 60 };
+    if (mode === 'hell') return { bpm: 138, totalBeats: 72 };
     return null; // easy：用静态值
   },
 
   buildChart(mode) {
+    if (mode === 'hell') {
+      // 地狱模式：138 BPM 极速，高密度16分音符连打 + 假音符陷阱（碰了扣分断连，避开得分）
+      const notes = [];
+      // 预备起手 (4~10)
+      notes.push({ beat: 4 }, { beat: 5 }, { beat: 6 }, { beat: 7 }, { beat: 7.5 }, { beat: 8 }, { beat: 9 }, { beat: 9.5 }, { beat: 10 });
+      // 陷阱 1 (beat 11) - 诱导玩家击打的假目标
+      notes.push({ beat: 11, fake: true });
+      // 疾风三连打 (12, 12.5, 13)
+      notes.push({ beat: 12 }, { beat: 12.5 }, { beat: 13 }, { beat: 14 }, { beat: 14.5 }, { beat: 15 });
+      // 陷阱 2 (beat 16.5)
+      notes.push({ beat: 16.5, fake: true });
+      // 16分切分音组 (18~24)
+      notes.push({ beat: 18 }, { beat: 18.5 }, { beat: 19 }, { beat: 20 }, { beat: 20.5 }, { beat: 21 }, { beat: 21.5 }, { beat: 22 }, { beat: 23 }, { beat: 23.5 }, { beat: 24 });
+      // 陷阱 3 (beat 25.5)
+      notes.push({ beat: 25.5, fake: true });
+      // 快速交错 (27~34)
+      notes.push({ beat: 27 }, { beat: 27.5 }, { beat: 28 }, { beat: 29 }, { beat: 29.5 }, { beat: 30 }, { beat: 30.5 }, { beat: 31 }, { beat: 32 }, { beat: 33 }, { beat: 33.5 }, { beat: 34 });
+      // 陷阱 4 (beat 35.5) & 陷阱 5 (beat 38)
+      notes.push({ beat: 35.5, fake: true }, { beat: 38, fake: true });
+      // 高速切分冲刺 (39~47)
+      notes.push({ beat: 39 }, { beat: 39.5 }, { beat: 40 }, { beat: 41 }, { beat: 41.5 }, { beat: 42 }, { beat: 43 }, { beat: 43.5 }, { beat: 44 }, { beat: 45 }, { beat: 45.5 }, { beat: 46 }, { beat: 47 });
+      // 陷阱 6 (beat 48.5)
+      notes.push({ beat: 48.5, fake: true });
+      // 极速回旋连击 (50~58)
+      notes.push({ beat: 50 }, { beat: 50.5 }, { beat: 51 }, { beat: 52 }, { beat: 52.5 }, { beat: 53 }, { beat: 54 }, { beat: 54.5 }, { beat: 55 }, { beat: 56 }, { beat: 56.5 }, { beat: 57 }, { beat: 58 });
+      // 陷阱 7 (beat 60)
+      notes.push({ beat: 60, fake: true });
+      // 最终决战蓄力击打 (62, 63, 64, 65, 68终极大岩石)
+      notes.push({ beat: 62 }, { beat: 63 }, { beat: 64 }, { beat: 64.5 }, { beat: 65 }, { beat: 68, big: true });
+      return notes;
+    }
     let beats;
     if (mode === 'normal') {
       beats = [
@@ -216,7 +248,11 @@ const LevelKarate = {
     // 物品抛出提示音（目标拍前 2 拍：古筝/三味线/吉他/Rhodes 弹拨）
     for (const n of game.chart) {
       if ((n.beat - 2) * 2 === step) {
-        if (typeof AudioEngine.playCulturalMelody === 'function' && typeof CultureTheme !== 'undefined' && CultureTheme.getScaleFreq) {
+        if (n.fake) {
+          // 陷阱音符特有刺耳警告音（低频锯齿波不谐和音，提醒玩家不要按！）
+          AudioEngine.tone(t, 174.61, 0.22, 'sawtooth', 0.28);
+          AudioEngine.tone(t + 0.04, 246.94, 0.18, 'sawtooth', 0.22);
+        } else if (typeof AudioEngine.playCulturalMelody === 'function' && typeof CultureTheme !== 'undefined' && CultureTheme.getScaleFreq) {
           const cueFreq = CultureTheme.getScaleFreq(cult, n.big ? 4 : 2, 1);
           AudioEngine.playCulturalMelody(t, cueFreq, 0.35, cult, 0.28);
         } else {
@@ -229,9 +265,16 @@ const LevelKarate = {
   onJudge(game, note, res) {
     const st = Conductor.songTime();
     const theme = CultureTheme.karate.getTheme();
-    if (res === 'miss') {
+    if (res === 'miss' || res === 'trap') {
       game.karate.sadT = st;
       note.fallT = st;
+      if (res === 'trap') {
+        game.burst(this.TX, this.TY, '#e85d5d', 22);
+        game.burst(this.TX, this.TY, '#222222', 15);
+      }
+    } else if (res === 'dodged') {
+      AudioEngine.tone(AudioEngine.now(), 880, 0.08, 'triangle', 0.15);
+      game.burst(this.TX, this.TY, '#ff7675', 12);
     } else {
       game.karate.punchT = st;
       AudioEngine.sfxSmash();
@@ -407,11 +450,11 @@ const LevelKarate = {
     for (const n of game.chart) {
       const launch = n.beat - 2;
       if (beat < launch) continue;
-      if (n.state === 'hit') continue;
+      if (n.state === 'hit' || n.state === 'dodged') continue;
       const r = n.big ? 30 : 18;
       ctx.save();
-      if (n.state === 'miss') {
-        const ft = st - n.fallT;
+      if (n.state === 'miss' || n.state === 'hit_trap') {
+        const ft = st - (n.fallT || st);
         if (ft > 0.8) { ctx.restore(); continue; }
         ctx.globalAlpha = 1 - ft / 0.8;
         ctx.translate(this.TX, this.TY + ft * ft * 700);
@@ -425,7 +468,29 @@ const LevelKarate = {
         ctx.rotate(beat * 3);
       }
 
-      if (cult === 'ja') {
+      if (n.fake) {
+        // 陷阱/假目标：暗红色脉冲警示刺球与 ✕ 危险印记
+        const pulse = 1 + Math.sin(st * 16) * 0.12;
+        ctx.fillStyle = 'rgba(231, 76, 60, 0.4)';
+        ctx.beginPath(); ctx.arc(0, 0, (r + 8) * pulse, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#2b001a';
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3; ctx.stroke();
+        ctx.fillStyle = '#ff4757';
+        for (let a = 0; a < 4; a++) {
+          const ang = a * Math.PI / 2 + beat * 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(ang) * (r * 0.7), Math.sin(ang) * (r * 0.7));
+          ctx.lineTo(Math.cos(ang + 0.25) * (r * 1.35), Math.sin(ang + 0.25) * (r * 1.35));
+          ctx.lineTo(Math.cos(ang - 0.25) * (r * 1.35), Math.sin(ang - 0.25) * (r * 1.35));
+          ctx.fill();
+        }
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-5, -5); ctx.lineTo(5, 5);
+        ctx.moveTo(5, -5); ctx.lineTo(-5, 5);
+        ctx.stroke();
+      } else if (cult === 'ja') {
         if (n.big) {
           ctx.fillStyle = '#616161';
           ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
@@ -545,11 +610,22 @@ const LevelEcho = {
     [0, 1, 1.5, 2.5, 3.5],
     [0, 0.5, 1.5, 2, 3]
   ],
+  // hell：7 轮，包含 16 分音符附点切分、复合拍位与跨拍交错
+  patternsHell: [
+    [0, 0.75, 1.5, 2.25, 3],
+    [0, 0.5, 1.25, 2, 2.75, 3.5],
+    [0, 0.75, 1.5, 2.5, 3.25, 4, 4.75],
+    [0, 0.5, 1, 1.75, 2.5, 3.25, 4.5],
+    [0, 0.75, 1.25, 2, 2.75, 3.5, 4.25, 5],
+    [0, 0.5, 1.25, 1.75, 2.5, 3.5, 4.25, 5.25],
+    [0, 0.75, 1.5, 2.25, 3, 3.75, 4.5, 5.25, 6]
+  ],
   scale: [523.25, 587.33, 659.25, 783.99, 880],
 
   setup(mode) {
     if (mode === 'normal') return { bpm: 101, totalBeats: 4 + 5 * 16 + 2 };
-    if (mode === 'hard') return { bpm: 100, totalBeats: 4 + 6 * 16 + 2 };
+    if (mode === 'hard') return { bpm: 108, totalBeats: 4 + 6 * 16 + 2 };
+    if (mode === 'hell') return { bpm: 118, totalBeats: 4 + 7 * 16 + 2 };
     return null; // easy：用静态值
   },
 
@@ -578,13 +654,21 @@ const LevelEcho = {
 
   buildChart(mode) {
     let patterns, rounds;
-    if (mode === 'normal') { patterns = this.patternsNormal; rounds = 5; }
-    else if (mode === 'hard') {
+    if (mode === 'hell') {
+      patterns = this.patternsHell;
+      rounds = 7;
+    } else if (mode === 'normal') {
+      patterns = this.patternsNormal;
+      rounds = 5;
+    } else if (mode === 'hard') {
       const rnd = mulberry32(Date.now() % 100000);
       rounds = 6;
       patterns = [];
       for (let r = 0; r < rounds; r++) patterns.push(this.genPattern(rnd));
-    } else { patterns = this.patterns; rounds = 4; }
+    } else {
+      patterns = this.patterns;
+      rounds = 4;
+    }
     this._cur = { patterns, rounds };
     const notes = [];
     for (let r = 0; r < rounds; r++) {
@@ -623,9 +707,10 @@ const LevelEcho = {
         ? CultureTheme.getScaleNotes(cult, 5)
         : this.scale;
       for (let i = 0; i < pat.length; i++) {
-        if (this.roundStart(info.round) + pat[i] === beat) {
+        const pBeat = this.roundStart(info.round) + pat[i];
+        if (pBeat >= beat && pBeat < beat + 0.5) {
           const freq = notes[i % notes.length];
-          AudioEngine.playCulturalMelody(t, freq, 0.45, cult, 0.28);
+          AudioEngine.playCulturalMelody(t + (pBeat - beat) * spb, freq, 0.45, cult, 0.28);
         }
       }
     }

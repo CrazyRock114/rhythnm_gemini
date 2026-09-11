@@ -36,13 +36,25 @@ const LevelClappy = {
   setup(mode) {
     if (mode === 'normal') return { bpm: 96 * 1.1, totalBeats: 77 };
     if (mode === 'hard') return { bpm: 108, totalBeats: 43 };
+    if (mode === 'hell') return { bpm: 122, totalBeats: 76 };
     return null; // easy：用静态 bpm / totalBeats
   },
 
   buildChart(mode) {
     mode = mode || 'easy';
     let groups;
-    if (mode === 'normal') {
+    if (mode === 'hell') {
+      // 地狱模式：122 BPM 高速，混合 0.25 拍机枪连拍 (Flam) 与 1/3 三连音神速拍手
+      const hellGaps = [0.25, 0.5, 0.333, 0.25, 0.75, 0.5, 0.25, 0.5, 0.333, 0.5, 0.25, 0.75, 0.25, 0.5];
+      groups = [];
+      let curHead = 4;
+      for (let i = 0; i < hellGaps.length; i++) {
+        const gap = hellGaps[i];
+        groups.push({ head: curHead, gap });
+        const span = gap * 2;
+        curHead += Math.max(span + 1.25, 3.5);
+      }
+    } else if (mode === 'normal') {
       groups = this.NORMAL_GAPS.map((gap, i) => ({ head: 4 + i * 7.5, gap }));
     } else if (mode === 'hard') {
       // 种子随机：12 个槽位（间隔 3 拍）随机休止留 8~12 组，每组间隔 0.5/0.75/1 随机
@@ -175,8 +187,9 @@ const LevelClappy = {
     // 同伴拍手状态（按拍比较，与排程严格一致）：组内第一声→猫0，第二声→猫1
     let clap0 = false, clap1 = false;
     for (const g of this._cur.groups) {
-      if (beat >= g.head && beat < g.head + 0.3) clap0 = true;
-      if (beat >= g.head + g.gap && beat < g.head + g.gap + 0.3) clap1 = true;
+      const dur = Math.min(0.25, g.gap * 0.8);
+      if (beat >= g.head && beat < g.head + dur) clap0 = true;
+      if (beat >= g.head + g.gap && beat < g.head + g.gap + dur) clap1 = true;
     }
     const clapP = st - k.clapT < 0.28;
     const allSad = st - k.sadT < 0.7;

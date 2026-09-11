@@ -162,7 +162,7 @@ const AudioEngine = {
     }
 
     const env = this.ctx.createGain();
-    const actualGain = style === "guitar" ? gain * 0.75 : gain;
+    const actualGain = gain;
     const tSus = t + dur * 0.75;
     const tEnd = t + dur;
 
@@ -563,8 +563,7 @@ const AudioEngine = {
     } else if (cult === "ja") {
       this.pluck(t, freq, dur * 0.9, gain, "shamisen");
     } else if (cult === "es") {
-      // 降低西语主旋律吉他音量 (0.13)，纯净温润，杜绝刺耳
-      this.pluck(t, freq, dur * 1.0, 0.13, "guitar");
+      this.pluck(t, freq, dur * 1.1, gain, "guitar");
     } else if (cult === "ar") {
       // 阿拉伯乌德琴 (Oud) 优美无品弹拨
       this.pluck(t, freq, dur * 1.1, gain * 0.9, "oud");
@@ -1060,11 +1059,11 @@ const AudioEngine = {
         this.pluck(now + 0.10, 622.25, 0.35, 0.26, "shamisen");
         this.pluck(now + 0.16, 783.99, 0.5, 0.28, "shamisen");
       } else if (cult === "es") {
-        // 西班牙：轻柔温润古典吉他三和弦，消除突兀杂音
+        // 西班牙：古典吉他三和弦
         this.kick(now);
-        this.pluck(now + 0.04, 493.88, 0.35, 0.15, "guitar"); // B4
-        this.pluck(now + 0.10, 523.25, 0.35, 0.15, "guitar"); // C5
-        this.pluck(now + 0.16, 659.25, 0.5, 0.16, "guitar"); // E5
+        this.pluck(now + 0.04, 493.88, 0.35, 0.24, "guitar"); // B4
+        this.pluck(now + 0.10, 523.25, 0.35, 0.24, "guitar"); // C5
+        this.pluck(now + 0.16, 659.25, 0.5, 0.26, "guitar"); // E5
       } else if (cult === "ar") {
         // 阿拉伯：达布卡手鼓 + 席贾兹调式乌德琴
         this.ethnicDrum(now, "darbuka_doum", 0.85);
@@ -1091,8 +1090,8 @@ const AudioEngine = {
         this.pluck(now, 587.33, 0.3, 0.24, "shamisen");
         this.pluck(now + 0.06, 783.99, 0.35, 0.24, "shamisen");
       } else if (cult === "es") {
-        this.pluck(now, 659.25, 0.3, 0.15, "guitar");
-        this.pluck(now + 0.06, 783.99, 0.35, 0.15, "guitar");
+        this.pluck(now, 659.25, 0.3, 0.22, "guitar");
+        this.pluck(now + 0.06, 880.00, 0.35, 0.22, "guitar");
       } else if (cult === "ar") {
         this.pluck(now, 293.66, 0.3, 0.2, "oud");
         this.pluck(now + 0.06, 369.99, 0.35, 0.2, "oud");
@@ -1111,8 +1110,8 @@ const AudioEngine = {
         this.pluck(now, 783.99, 0.35, 0.25, "shamisen");
         this.ethnicDrum(now + 0.05, "woodblock", 0.8);
       } else if (cult === "es") {
-        this.pluck(now, 659.25, 0.35, 0.16, "guitar");
-        this.pluck(now + 0.05, 880.00, 0.4, 0.16, "guitar");
+        this.pluck(now, 659.25, 0.35, 0.24, "guitar");
+        this.pluck(now + 0.05, 880.00, 0.4, 0.24, "guitar");
       } else if (cult === "ar") {
         this.ethnicDrum(now, "darbuka_doum", 0.7);
         this.pluck(now + 0.05, 369.99, 0.35, 0.22, "oud");

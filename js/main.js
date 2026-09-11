@@ -20,7 +20,7 @@ const Main = {
   MAIN_KEYS: ['Space', 'Enter', 'KeyJ'],
   ALT_KEYS: ['KeyF', 'KeyK'],
   getModeName(m) {
-    return (typeof I18n !== 'undefined') ? I18n.t('diff_' + m) : (m === 'easy' ? '简单' : m === 'normal' ? '普通' : '困难');
+    return (typeof I18n !== 'undefined') ? I18n.t('diff_' + m) : (m === 'easy' ? '简单' : m === 'normal' ? '普通' : m === 'hard' ? '困难' : '地狱');
   },
 
   init() {
@@ -244,7 +244,7 @@ const Main = {
 
   updateDiffBest(lv) {
     const parts = [];
-    for (const m of ['easy', 'normal', 'hard']) {
+    for (const m of ['easy', 'normal', 'hard', 'hell']) {
       const b = this.best[lv.id + ':' + m];
       parts.push(this.getModeName(m) + ' ' + (b || '—'));
     }
@@ -258,7 +258,7 @@ const Main = {
       const el = document.querySelector('.lv-best[data-lv="' + lv.id + '"]');
       if (!el) continue;
       const parts = [];
-      for (const m of ['easy', 'normal', 'hard']) {
+      for (const m of ['easy', 'normal', 'hard', 'hell']) {
         const b = this.best[lv.id + ':' + m];
         if (b) parts.push(this.getModeName(m) + ' ' + b);
       }

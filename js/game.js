@@ -40,11 +40,22 @@ const Game = {
     this.mode = mode || 'easy';
     level.mode = this.mode;
     // 关卡可通过 setup(mode) 提供不同模式的 bpm / totalBeats，缺省用静态值（easy）
-    const su = level.setup ? level.setup(this.mode) : null;
+    let su = level.setup ? level.setup(this.mode) : null;
+    if (!su && this.mode === 'hell' && level.setup) {
+      // 关卡若未定制 hell setup，继承 hard 配置并提速 10%
+      const hardSu = level.setup('hard');
+      if (hardSu) {
+        su = { bpm: Math.round(hardSu.bpm * 1.1), totalBeats: hardSu.totalBeats };
+      }
+    }
     this.bpm = (su && su.bpm) || level.bpm;
     this.totalBeats = (su && su.totalBeats) || level.totalBeats;
     Conductor.start(this.bpm);
-    this.chart = level.buildChart(this.mode);
+    let chart = level.buildChart(this.mode);
+    if ((!chart || chart.length === 0) && this.mode === 'hell') {
+      chart = level.buildChart('hard');
+    }
+    this.chart = chart;
     for (const n of this.chart) {
       n.time = Conductor.beatToTime(n.beat);
       n.state = 'pending';
@@ -107,6 +118,17 @@ const Game = {
       AudioEngine.sfxWhiff();
       this.addEffect(I18n.t('judge_whiff'), '#9a94b8');
       this.level.onWhiff(this);
+      return;
+    }
+    // 陷阱/假音符机制（Hell 模式专用）：按了假目标算中计踩雷！
+    if (best.fake) {
+      best.state = 'hit_trap';
+      best.result = 'trap';
+      this.judges.miss++;
+      this.combo = 0;
+      AudioEngine.sfxMiss();
+      this.feedback('miss', I18n.t('judge_trap'), '#e85d5d');
+      if (this.level.onJudge) this.level.onJudge(this, best, 'trap');
       return;
     }
     // 双键关：按错键 → 该音符直接 MISS
@@ -183,8 +205,19 @@ const Game = {
     }
     this.delayedFx = this.delayedFx.filter(fx => !fx.done);
     for (const n of this.chart) {
+      // 陷阱音符避开判定：超过判定窗仍未按，玩家机智避开！给予避开反馈与奖励分
+      if (n.fake && n.state === 'pending' && now - n.time > this.GOOD) {
+        n.state = 'dodged';
+        n.result = 'dodged';
+        this.score += 2;
+        this.combo++;
+        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+        this.addEffect(I18n.t('judge_dodge'), '#ff7675');
+        if (this.level.onJudge) this.level.onJudge(this, n, 'dodged');
+        continue;
+      }
       // MISS：超过判定窗仍未按（n.time 是 ctx 绝对时间，必须用 now 比较）
-      if (n.state === 'pending' && now - n.time > this.GOOD) {
+      if (!n.fake && n.state === 'pending' && now - n.time > this.GOOD) {
         n.state = 'miss';
         this.judges.miss++;
         this.combo = 0;
@@ -218,8 +251,9 @@ const Game = {
 
   finish() {
     this.stop();
-    const max = this.chart.length * 2;
-    const acc = max > 0 ? this.score / max : 0;
+    const realNotes = this.chart.filter(n => !n.fake);
+    const max = (realNotes.length > 0 ? realNotes.length : this.chart.length) * 2;
+    const acc = max > 0 ? Math.min(1, this.score / max) : 0;
     let rank;
     if (acc >= 0.9) rank = 'S';
     else if (acc >= 0.75) rank = 'A';
