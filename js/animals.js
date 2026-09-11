@@ -400,6 +400,37 @@ Object.assign(Animals, {
       ctx.lineTo(-s * 0.95, s * 0.95);
       ctx.lineTo(-s * 0.2, s * 0.7);
       ctx.closePath(); ctx.fill();
+    } else if (cult === 'ar') {
+      // 阿拉伯绿洲侠客猫：沙漠白绿头巾 + 金扣翡翠宝石
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.ellipse(0, -s * 1.15, s * 0.72, s * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#059669';
+      ctx.fillRect(-s * 0.55, -s * 1.12, s * 1.1, s * 0.12);
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(0, -s * 1.06, s * 0.09, 0, Math.PI * 2); ctx.fill();
+      // 绿袍披肩
+      ctx.fillStyle = '#047857';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.32, -s * 0.12);
+      ctx.lineTo(s * 0.32, -s * 0.12);
+      ctx.lineTo(0, s * 0.22);
+      ctx.closePath(); ctx.fill();
+    } else if (cult === 'hi') {
+      // 印度王公猫：华丽藏红头巾 + 孔雀羽饰
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath(); ctx.ellipse(0, -s * 1.18, s * 0.75, s * 0.34, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e11d48';
+      ctx.fillRect(-s * 0.55, -s * 1.14, s * 1.1, s * 0.12);
+      // 孔雀羽毛
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.ellipse(s * 0.3, -s * 1.55, s * 0.1, s * 0.35, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath(); ctx.arc(s * 0.36, -s * 1.6, s * 0.06, 0, Math.PI * 2); ctx.fill();
+      // 金牌
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath(); ctx.arc(0, -s * 1.08, s * 0.09, 0, Math.PI * 2); ctx.fill();
     } else {
       // 默认功夫猫：中国红武术头带与金徽
       ctx.fillStyle = '#c0392b';

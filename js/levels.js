@@ -386,6 +386,16 @@ const LevelKarate = {
         ctx.strokeStyle = 'rgba(46,204,113,' + (0.9 * p).toFixed(3) + ')';
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(this.TX - 30, this.TY, 24 + (1 - p) * 30, -0.6, 0.6); ctx.stroke();
+      } else if (cult === 'ar') {
+        ctx.strokeStyle = 'rgba(245,158,11,' + (0.9 * p).toFixed(3) + ')';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(this.TX - 25, this.TY, 28 + (1 - p) * 26, -0.6, 0.6); ctx.stroke();
+        Draw.text(ctx, '!ضربة', this.TX + 12, this.TY - 30, 22, 'rgba(245,158,11,' + p.toFixed(2) + ')');
+      } else if (cult === 'hi') {
+        ctx.strokeStyle = 'rgba(225,29,72,' + (0.9 * p).toFixed(3) + ')';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(this.TX - 25, this.TY, 28 + (1 - p) * 26, -0.6, 0.6); ctx.stroke();
+        Draw.text(ctx, 'प्रहार!', this.TX + 12, this.TY - 30, 22, 'rgba(225,29,72,' + p.toFixed(2) + ')');
       } else {
         ctx.strokeStyle = 'rgba(255,255,255,' + (0.8 * p).toFixed(3) + ')';
         ctx.lineWidth = 3;
@@ -461,6 +471,37 @@ const LevelKarate = {
             ctx.moveTo(-r * 0.25, -r * 0.6); ctx.lineTo(r * 0.25, -r * 0.6); ctx.lineTo(0, -r * 1.3); ctx.closePath(); ctx.fill();
             ctx.restore();
           }
+        }
+      } else if (cult === 'ar') {
+        if (n.big) {
+          // 阿拉伯神灯
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath(); ctx.ellipse(0, 0, r * 1.2, r * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#d97706'; ctx.lineWidth = 3; ctx.stroke();
+          ctx.fillStyle = '#fbbf24';
+          ctx.beginPath(); ctx.arc(-r * 0.8, -r * 0.3, r * 0.3, 0, Math.PI * 2); ctx.fill();
+        } else {
+          // 陶土瓦罐
+          ctx.fillStyle = '#c2410c';
+          ctx.beginPath(); ctx.ellipse(0, 0, r * 0.85, r * 1.1, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#7c2d12'; ctx.lineWidth = 2.5; ctx.stroke();
+          ctx.fillStyle = '#ea580c';
+          ctx.fillRect(-r * 0.5, -r * 1.1, r, r * 0.25);
+        }
+      } else if (cult === 'hi') {
+        if (n.big) {
+          // 印度黄铜圣壶 (Kalash)
+          ctx.fillStyle = '#eab308';
+          ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3; ctx.stroke();
+          ctx.fillStyle = '#15803d'; // 绿叶装饰
+          ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(-r * 0.4, -r * 1.4); ctx.lineTo(r * 0.4, -r * 1.4); ctx.closePath(); ctx.fill();
+        } else {
+          // 印度红泥陶灯 (Diya)
+          ctx.fillStyle = '#b91c1c';
+          ctx.beginPath(); ctx.ellipse(0, r * 0.2, r, r * 0.55, 0, 0, Math.PI); ctx.fill();
+          ctx.fillStyle = '#f59e0b'; // 火焰
+          ctx.beginPath(); ctx.arc(0, -r * 0.3, r * 0.35, 0, Math.PI * 2); ctx.fill();
         }
       } else {
         ctx.fillStyle = n.big ? '#8d8d99' : '#b5651d';

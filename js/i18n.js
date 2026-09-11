@@ -8,7 +8,7 @@
 'use strict';
 
 const I18n = {
-  SUPPORTED: ['zh', 'en', 'ja', 'es'],
+  SUPPORTED: ['zh', 'en', 'ja', 'es', 'ar', 'hi'],
   DEFAULT: 'zh',
   lang: 'zh',
 
@@ -17,7 +17,9 @@ const I18n = {
     zh: { name: '中文', flag: '🇨🇳', label: '中文' },
     en: { name: 'English', flag: '🇺🇸', label: 'English' },
     ja: { name: '日本語', flag: '🇯🇵', label: '日本語' },
-    es: { name: 'Español', flag: '🇪🇸', label: 'Español' }
+    es: { name: 'Español', flag: '🇪🇸', label: 'Español' },
+    ar: { name: 'العربية', flag: '🇸🇦', label: 'العربية' },
+    hi: { name: 'हिन्दी', flag: '🇮🇳', label: 'हिन्दी' }
   },
 
   // UI 字典
@@ -677,7 +679,335 @@ const I18n = {
       remix_dj: '¡Escuela DJ!',
       remix_ringside: '¡Lucha Libre!',
       remix_finale: '¡Gran Final!'
-    }
+    },
+
+    ar: {
+      game_title: 'ملك الإيقاع',
+      subtitle: 'THE KING OF RHYTHM',
+      hint_start: 'اتبع الإيقاع واضغط في اللحظة المناسبة تماماً!',
+      btn_start: 'ابدأ اللعبة',
+      hint_audio: '(النقرة الأولى تُفعّل الصوت، يُرجى رفع الصوت 🔊)',
+      btn_sound_check: '🔊 تجربة الصوت',
+      sound_ready: '🔊 الصوت جاهز!',
+      select_level: 'اختر المرحلة',
+      select_diff: 'اختر الصعوبة',
+      btn_retry: 'إعادة المحاولة',
+      btn_back: 'اختيار المرحلة',
+      btn_diff_back: 'رجوع',
+      diff_easy: 'سهل',
+      diff_normal: 'عادي',
+      diff_hard: 'صعب',
+      best_label: 'الأفضل: ',
+      mode_suffix: 'نمط',
+      acc_label: 'الدقة',
+      max_combo_label: 'أعلى كومبو',
+      hud_tip_default: 'مسافة / نقر = ضرب · Esc = خروج',
+      key_space: 'مسافة',
+      rotate_hint: 'نوصي باللعب بالوضع الأفقي<br>يمكنك المتابعة عمودياً أيضاً:',
+      btn_force_landscape: 'فرض الوضع الأفقي',
+      btn_portrait_continue: 'متابعة بالوضع الرأسي',
+
+      judge_perfect: '!ممتاز',
+      judge_good: '!جيد',
+      judge_miss: '!فائت',
+      judge_whiff: 'ضربة في الهواء…',
+      judge_wrong_key: '!زر خاطئ',
+      judge_early: '!مبكر جداً',
+      judge_late: '!متأخر جداً',
+      judge_unreleased: '!لم تفلت',
+      combo: '!كومبو',
+
+      rank_S: 'أسطوري! إحساسك الإيقاعي خارق!',
+      rank_A: 'رائع جداً! أداء مذهل!',
+      rank_B: 'جيد جداً، واصل التناغم!',
+      rank_C: 'تابع التدريب وستصل إلى الكمال!',
+
+      ready: 'استعد…',
+      start: '!انطلق',
+      listen: '…استمع جيداً',
+      your_turn: '!دورك الآن',
+      teacher: 'المعلم',
+      you: 'أنت',
+      you_arrow: '▼ أنت',
+      captain: 'القائد',
+      owner: 'المالك',
+      round_info: 'الجولة {r} / {total}',
+      on_beat: 'على الإيقاع',
+      off_beat: 'عكس الإيقاع',
+      march_tip: 'سر مع الفريق: دم منخفض = الأساس، تك مرتفع = العكس!',
+      march_rest: 'استراحة! استمع: التالي هو [{mode}]',
+      fill_tip: 'اضغط مع الاستمرار لتعبئة الطاقة، وأفلت عند الامتلاء!',
+      birds_peck: '!نقر! نقر! نقر',
+      birds_stretch: '!تمطددددد',
+      birds_tip_peck: 'انقر مسافة = نقر ×3',
+      birds_tip_stretch: 'اضغط ثم أفلت = تمدد',
+      birds_song_tip: 'استمع للقائد: "نقر-نقر-نقر" اضغط 3 مرات، "تمدد" اضغط وأفلت!',
+      spaceball_hit: '!اضرب',
+      tap_da: 'تك',
+      sing: '!غن',
+      stop: '!توقف',
+      packing_candy: '= مسافة',
+      packing_bug: '= F',
+      monk_count: 'فلافل {n}!',
+      monk_word: 'واحة',
+      mahou_tip: 'استمع للتعويذة "بي-كو-بون": اضغط فور توقفها لتزهر الوردة!',
+      rat_crouch: '!انحن',
+      rat_hold: '!اشحن',
+      rat_go: '!انطلق',
+      rat_tip: 'استمع للأمر: "انحن!" للشحن، وأفلت عند سماع الصفارة الحقيقية!',
+      rat_resist: '!انتظر',
+      bell_hi: 'عالي=1ن',
+      bell_mid: 'متوسط=1.5ن',
+      bell_lo: 'منخفض=2ن',
+      bell_hi_full: 'الجرس العالي = اقفز بعد 1 نقرة',
+      bell_mid_full: 'الجرس المتوسط = اقفز بعد 1.5 نقرة',
+      bell_lo_full: 'الجرس المنخفض = اقفز بعد 2 نقرة',
+      dj_hold: '!امسك',
+      dj_release: '!أفلت',
+      dj_yo: '!يو',
+      ringside_tri: '!با-با-بوم',
+      ringside_single: '!بوم',
+      ringside_hold: '!امسك... لكمة',
+      ringside_sub_combo: '!لكمات ثلاثية',
+      ringside_sub_combo4: '!4 لكمات',
+      ringside_sub_single: '!لكمة مفردة',
+      ringside_sub_hold: '!لكمة ثقيلة',
+      remix_ready: 'الجميع جاهز... ريمكس!',
+      frisbee_count: '…عد في عقلك',
+      frisbee_go: '!انطلق',
+
+      lv_karate_name: 'المرحلة 1 · قط الواحة',
+      lv_karate_desc: 'حطم الأواني الطائرة فور وصولها إلى الدائرة المستهدفة! انتبه لنصف النبضة.',
+      lv_karate_hint: 'اضغط مسافة فور وصول الشيء للدائرة!',
+      lv_echo_name: 'المرحلة 2 · صدى الإيقاع',
+      lv_echo_desc: 'استمع لمعزوفة العود من المعلم، ثم رددها نغمة بنغمة بنفس الدقة!',
+      lv_pong_name: 'المرحلة 3 · بينغ بونغ الإيقاع',
+      lv_pong_desc: 'رد الكرة في مضربك في اللحظة المناسبة. الكرات الحمراء كرات ساحقة فائقة السرعة!',
+      lv_march_name: 'المرحلة 4 · خطوة الصحراء',
+      lv_march_desc: 'سر في انسجام مع الفريق: دم منخفض = الأساس، تك مرتفع = المعاكس!',
+      lv_fill_name: 'المرحلة 5 · تعبئة طاقة الروبوت',
+      lv_fill_desc: 'اضغط مطولاً على مسافة لضخ الطاقة، وأفلت فور امتلاء العداد تماماً!',
+      lv_birds_name: 'المرحلة 6 · فرقة الطيور المغردة',
+      lv_birds_desc: 'اتبع القائد: "نقر نقر نقر" اضغط ثلاثاً، "تمدد" اضغط مطولاً وأفلت!',
+      lv_clappy_name: 'المرحلة 7 · ثلاثي التصفيق',
+      lv_clappy_desc: 'استمع للتصفيقتين الأوليين وأكمل الثالثة في التوقيت المثالي تماماً!',
+      lv_spaceball_name: 'المرحلة 8 · بيسبول الفضاء',
+      lv_spaceball_desc: 'استمع لرمية الكرة واضربها فور وصولها لمنطقة الاتصال!',
+      lv_crop_name: 'المرحلة 9 · حصاد الواحة',
+      lv_crop_desc: 'احصد التمور والخضار مع النبضة؛ اضغط مطولاً لاقتلاع البطيخ العملاق!',
+      lv_shooter_name: 'المرحلة 10 · مدافع الفضاء',
+      lv_shooter_desc: 'استمع لصفارة الرادار وأطلق النار فور محاذاة الهدف بالتقاطع!',
+      lv_taptrial_name: 'المرحلة 11 · الرقص النقري',
+      lv_taptrial_desc: 'اتبع حركات الرقص النقري، أتقن النبضات الثلاثية والنقرات السريعة!',
+      lv_glee_name: 'المرحلة 12 · جوقة الإنشاد',
+      lv_glee_desc: 'افتح فمك وغنِ مع رفاقك، وأغلق فمك فور صمتهم التام!',
+      lv_monk_name: 'المرحلة 13 · مأدبة الواحة',
+      lv_monk_desc: 'استمع لعد العصفور، والتهم الفلافل على نصف النبضة بالتمام والكمال!',
+      lv_monk_hint: 'مسافة / نقر = أكل · Esc = خروج',
+      lv_packing_name: 'المرحلة 14 · مصنع التعبئة',
+      lv_packing_desc: 'التقط الحلوى بمسافة، واطرد الحشرات المزعجة بزر F!',
+      lv_mahou_name: 'المرحلة 15 · سحر الياسمين',
+      lv_mahou_desc: 'استمع لترتيل التعويذة واضغط فور انتهائها لتتفتح زهور الياسمين!',
+      lv_showtime_name: 'المرحلة 16 · قفزة البطاريق',
+      lv_showtime_desc: 'استمع للأجراس: جرس عالي اقفز بعد نبضة، جرس منخفض بعد نبضتين!',
+      lv_ratrace_name: 'المرحلة 17 · سباق الفئران',
+      lv_ratrace_desc: 'انحنِ للشحن عند الإشارة، وانطلق نحو الجبن عند سماع الصفارة الحقيقية!',
+      lv_dj_name: 'المرحلة 18 · مدرسة الـ DJ',
+      lv_dj_desc: 'اضغط مطولاً لإيقاف القرص الموسيقي، وأفلت عند سماع "يو!" لإشعال الحفل!',
+      lv_ringside_name: 'المرحلة 19 · حلبة الملاكمة',
+      lv_ringside_desc: 'اتبع أسئلة الصحفيين: ضربات ثلاثية متتالية ولكمة قاضية مدمرة!',
+      lv_frisbee_name: 'المرحلة 20 · الكلب والقرص الطائر',
+      lv_frisbee_desc: 'احسب النبضات بحدسك من نغمة الرمية، ثم اقفز والتقط القرص في الهواء!',
+      lv_remix_name: 'المرحلة 21 · الريمكس الكبير',
+      lv_remix_desc: 'الميدلي الإيقاعي الشامل الذي يجمع ألعاب الإيقاع العشرين كلها! اتبع العنوان ولا تفوّت نبضة!',
+
+      remix_karate: '!قط الواحة',
+      remix_echo: '!صدى الإيقاع',
+      remix_pong: '!بينغ بونغ',
+      remix_marchOn: '!مسير الصحراء',
+      remix_marchOff: '!مسير عكسي',
+      remix_fill: '!شحن الطاقة',
+      remix_birds: '!الطيور المغردة',
+      remix_clappy: '!ثلاثي التصفيق',
+      remix_spaceball: '!بيسبول الفضاء',
+      remix_crop: '!حصاد الواحة',
+      remix_shooter: '!مدافع الفضاء',
+      remix_taptrial: '!الرقص النقري',
+      remix_glee: '!جوقة الإنشاد',
+      remix_monk: '!مأدبة الفلافل',
+      remix_packing: '!مصنع التعبئة',
+      remix_mahou: '!سحر الياسمين',
+      remix_showtime: '!قفزة البطاريق',
+      remix_ratrace: '!سباق الفئران',
+      remix_dj: '!مدرسة الـ DJ',
+      remix_ringside: '!حلبة الملاكمة',
+      remix_finale: '!النهائي الكبير'
+    },
+
+
+    hi: {
+      game_title: 'रिदम किंग',
+      subtitle: 'THE KING OF RHYTHM',
+      hint_start: 'संगीत की लय पर ध्यान दें और सही समय पर बटन दबाएं!',
+      btn_start: 'खेल शुरू करें',
+      hint_audio: '(पहले क्लिक पर आवाज़ शुरू होगी, आवाज़ बढ़ाएं 🔊)',
+      btn_sound_check: '🔊 साउंड टेस्ट',
+      sound_ready: '🔊 आवाज़ तैयार है!',
+      select_level: 'लेवल चुनें',
+      select_diff: 'कठिनाई चुनें',
+      btn_retry: 'फिर से खेलें',
+      btn_back: 'लेवल सूची',
+      btn_diff_back: 'वापस',
+      diff_easy: 'आसान',
+      diff_normal: 'सामान्य',
+      diff_hard: 'कठिन',
+      best_label: 'सर्वश्रेष्ठ: ',
+      mode_suffix: 'मोड',
+      acc_label: 'सटीकता',
+      max_combo_label: 'अधिकतम कॉम्बो',
+      hud_tip_default: 'स्पेस / क्लिक = हिट · Esc = बाहर',
+      key_space: 'स्पेस',
+      rotate_hint: 'लैंडस्केप मोड में खेलने की सलाह दी जाती है:<br>पोर्ट्रेट में भी खेल सकते हैं:',
+      btn_force_landscape: 'लैंडस्केप करें',
+      btn_portrait_continue: 'पोर्ट्रेट में जारी रखें',
+
+      judge_perfect: 'शानदार!',
+      judge_good: 'अच्छा!',
+      judge_miss: 'छूट गया!',
+      judge_whiff: 'हवा में लगा…',
+      judge_wrong_key: 'गलत बटन!',
+      judge_early: 'बहुत जल्दी!',
+      judge_late: 'बहुत देर!',
+      judge_unreleased: 'छोड़ा नहीं!',
+      combo: 'कॉम्बो!',
+
+      rank_S: 'अद्भुत! आपकी लय की समझ लाजवाब है!',
+      rank_A: 'उत्कृष्ट प्रदर्शन! बहुत सुंदर!',
+      rank_B: 'बहुत अच्छा, अभ्यास जारी रखें!',
+      rank_C: 'कोशिश करते रहें, अभ्यास से निपुणता आएगी!',
+
+      ready: 'तैयार…',
+      start: 'शुरू!',
+      listen: 'ध्यान से सुनें…',
+      your_turn: 'आपकी बारी!',
+      teacher: 'गुरु',
+      you: 'आप',
+      you_arrow: '▼ आप',
+      captain: 'कप्तान',
+      owner: 'मालिक',
+      round_info: 'राउंड {r} / {total}',
+      on_beat: 'सम पर',
+      off_beat: 'खाली पर',
+      march_tip: 'दल के साथ कदम मिलाएं: धीमा धिन = सम, तेज ता = खाली!',
+      march_rest: 'विराम! सुनें: अगला है [{mode}]',
+      fill_tip: 'ऊर्जा भरने के लिए स्पेस दबाए रखें, पूरा भरने पर छोड़ें!',
+      birds_peck: 'चोंच! चोंच! चोंच!',
+      birds_stretch: 'फैलाओ!',
+      birds_tip_peck: 'स्पेस टैप = चोंच मारना ×3',
+      birds_tip_stretch: 'दबाकर छोड़ना = अंगड़ाई',
+      birds_song_tip: 'कप्तान को सुनें: "चोंच-चोंच-चोंच" 3 बार दबाएं, "फैलाओ" दबाकर छोड़ें!',
+      spaceball_hit: 'शॉट मारो!',
+      tap_da: 'ता',
+      sing: 'गाओ!',
+      stop: 'रुको!',
+      packing_candy: '= स्पेस',
+      packing_bug: '= F',
+      monk_count: '{n} समोसे!',
+      monk_word: 'आश्रम',
+      mahou_tip: 'मंत्र सुनें "पि-को-पोन": समाप्त होते ही स्पेस दबाएं और कमल खिलाएं!',
+      rat_crouch: 'झुको!',
+      rat_hold: 'चार्ज!',
+      rat_go: 'दौड़ो!',
+      rat_tip: 'आदेश सुनें: "झुको!" दबाए रखें, असली सीटी पर छोड़ें!',
+      rat_resist: 'रुको!',
+      bell_hi: 'उच्च=1मा',
+      bell_mid: 'मध्य=1.5मा',
+      bell_lo: 'मंद्र=2मा',
+      bell_hi_full: 'उच्च घंटी = 1 मात्रा बाद कूदें',
+      bell_mid_full: 'मध्य घंटी = 1.5 मात्रा बाद कूदें',
+      bell_lo_full: 'मंद्र घंटी = 2 मात्रा बाद कूदें',
+      dj_hold: 'थामे रखें!',
+      dj_release: 'छोड़ें!',
+      dj_yo: 'यो!',
+      ringside_tri: 'धमा-धम-धूम!',
+      ringside_single: 'धूम!',
+      ringside_hold: 'रोककर... मुक्का!',
+      ringside_sub_combo: 'तीन मुक्के!',
+      ringside_sub_combo4: '4 मुक्के!',
+      ringside_sub_single: 'एक मुक्का!',
+      ringside_sub_hold: 'भारी मुक्का!',
+      remix_ready: 'सभी सितारे तैयार... रीमिक्स!',
+      frisbee_count: 'मन में गिनें…',
+      frisbee_go: 'जाओ!',
+
+      lv_karate_name: 'लेवल 1 · राजपूताना बिल्ली',
+      lv_karate_desc: 'हवा में उड़ते मटके लक्ष्य तक पहुंचते ही स्पेस दबाकर तोड़ें! आधी मात्रा वाली ताल पर ध्यान दें।',
+      lv_karate_hint: 'वस्तु वृत्त तक पहुंचते ही स्पेस दबाएं!',
+      lv_echo_name: 'लेवल 2 · संगीत अनुकरण',
+      lv_echo_desc: 'गुरुजी के सितार वादन को ध्यान से सुनें और हूबहू दोहराएं! ठहराव पर ध्यान दें।',
+      lv_pong_name: 'लेवल 3 · रिदम टेबल टेनिस',
+      lv_pong_desc: 'गेंद बल्ले तक आते ही शॉट मारें। लाल गेंद तेज गति वाली स्मैश है!',
+      lv_march_name: 'लेवल 4 · कदमताल परेड',
+      lv_march_desc: 'कदम मिलाएं: गहरा धिन = सम, तेज ता = खाली।',
+      lv_fill_name: 'लेवल 5 · रोबोट ऊर्जा भरण',
+      lv_fill_desc: 'स्पेस दबाकर ऊर्जा भरें, मीटर पूरा भरते ही छोड़ दें!',
+      lv_birds_name: 'लेवल 6 · नीली चिड़ियों की मंडली',
+      lv_birds_desc: 'कप्तान का गीत सुनें: 3 बार चोंच मारें, फिर अंगड़ाई लें!',
+      lv_clappy_name: 'लेवल 7 · ताल त्रिमूर्ति',
+      lv_clappy_desc: 'पहले दो साथियों की ताली सुनकर तीसरी ताली बिल्कुल सही ताल पर बजाएं!',
+      lv_spaceball_name: 'लेवल 8 · अंतरिक्ष बेसबॉल',
+      lv_spaceball_desc: 'गेंद की आवाज सुनकर संपर्क बिंदु पर शानदार शॉट लगाएं!',
+      lv_crop_name: 'लेवल 9 · खेत की कटाई',
+      lv_crop_desc: 'आम और फसलें उगते ही काटें; बड़े कद्दू को दबाकर खींचें!',
+      lv_shooter_name: 'लेवल 10 · अंतरिक्ष रक्षक',
+      lv_shooter_desc: 'रडार बीप सुनें और निशाने पर आते ही आक्रमणकारी को नष्ट करें!',
+      lv_taptrial_name: 'लेवल 11 · कथक टैप डांस',
+      lv_taptrial_desc: 'बंदरों के साथ ताल पर थिरकें, तिहाइयों और दुगुन ताल को साधें!',
+      lv_glee_name: 'लेवल 12 · संगीत सभा',
+      lv_glee_desc: 'साथी गाएं तो सुर मिलाएं, वे चुप हों तो तुरंत मुंह बंद करें!',
+      lv_monk_name: 'लेवल 13 · समोसा दावत',
+      lv_monk_desc: 'चिड़िया के सुरों की गिनती सुनें और आधी मात्रा पर स्वादिष्ट समोसे खाएं!',
+      lv_monk_hint: 'स्पेस / क्लिक = खाना · Esc = बाहर',
+      lv_packing_name: 'लेवल 14 · मिठाई पैकिंग',
+      lv_packing_desc: 'स्पेस से मिठाइयां पकड़ें, F बटन से मक्खियां भगाएं!',
+      lv_mahou_name: 'लेवल 15 · जादुई कमल',
+      lv_mahou_desc: 'मंत्र की ताल सुनें और समाप्त होते ही स्पेस दबाकर कमल खिलाएं!',
+      lv_showtime_name: 'लेवल 16 · पेंगुइन छलांग',
+      lv_showtime_desc: 'घंटी सुनकर कूदें: उच्च घंटी 1 मात्रा बाद, मंद्र घंटी 2 मात्रा बाद!',
+      lv_ratrace_name: 'लेवल 17 · चूहा दौड़',
+      lv_ratrace_desc: 'संकेत पर झुककर शक्ति जुटाएं, असली सीटी बजते ही पनीर की ओर दौड़ें!',
+      lv_dj_name: 'लेवल 18 · डीजे स्कूल',
+      lv_dj_desc: 'स्पेस दबाकर रिकॉर्ड रोकें, "यो!" की आवाज पर संगीत चालू करें!',
+      lv_ringside_name: 'लेवल 19 · दंगल अखाड़ा',
+      lv_ringside_desc: 'रिपोर्टर के अनुसार मुक्के चलाएं: तिहरे मुक्के और जोरदार धोबी पछाड़!',
+      lv_frisbee_name: 'लेवल 20 · कुत्ता और फ्रिसबी',
+      lv_frisbee_desc: 'फेंकने की आवाज से मात्राएं गिनें, हवा में उछलकर फ्रिसबी पकड़ें!',
+      lv_remix_name: 'लेवल 21 · महा रीमिक्स',
+      lv_remix_desc: 'सभी 20 संगीत खेलों का भव्य संगम! शीर्षक कार्ड देखें और ताल न चूकें!',
+
+      remix_karate: 'राजपूताना बिल्ली!',
+      remix_echo: 'संगीत अनुकरण!',
+      remix_pong: 'टेबल टेनिस!',
+      remix_marchOn: 'कदमताल!',
+      remix_marchOff: 'खाली कदमताल!',
+      remix_fill: 'ऊर्जा भरण!',
+      remix_birds: 'नीली चिड़िया!',
+      remix_clappy: 'ताल त्रिमूर्ति!',
+      remix_spaceball: 'अंतरिक्ष बेसबॉल!',
+      remix_crop: 'खेत कटाई!',
+      remix_shooter: 'अंतरिक्ष रक्षक!',
+      remix_taptrial: 'कथक टैप!',
+      remix_glee: 'संगीत सभा!',
+      remix_monk: 'समोसा दावत!',
+      remix_packing: 'मिठाई पैकिंग!',
+      remix_mahou: 'जादुई कमल!',
+      remix_showtime: 'पेंगुइन छलांग!',
+      remix_ratrace: 'चूहा दौड़!',
+      remix_dj: 'डीजे स्कूल!',
+      remix_ringside: 'दंगल अखाड़ा!',
+      remix_finale: 'भव्य समापन!'
+    },
+
   },
 
   init() {
@@ -693,6 +1023,8 @@ const I18n = {
       else if (nav.startsWith('ja')) this.lang = 'ja';
       else if (nav.startsWith('es')) this.lang = 'es';
       else if (nav.startsWith('en')) this.lang = 'en';
+      else if (nav.startsWith('ar')) this.lang = 'ar';
+      else if (nav.startsWith('hi')) this.lang = 'hi';
       else this.lang = this.DEFAULT;
     }
     if (document && document.documentElement) {
@@ -829,6 +1161,36 @@ const CultureTheme = {
             burstColor: '#00b894',
             confettiFx: true
           };
+        case 'ar':
+          return {
+            title: 'فارس الواحة · Oasis Cat',
+            bgSkyTop: '#d97706',
+            bgSkyBottom: '#fef3c7',
+            sunColor: '#fffbeb',
+            oasis: true,
+            palmTrees: true,
+            catTurban: true,
+            catSash: '#059669',
+            itemNormal: 'urn_clay',
+            itemBig: 'golden_lamp',
+            burstColor: '#f59e0b',
+            slashFx: true
+          };
+        case 'hi':
+          return {
+            title: 'राजपूताना बिल्ली · Maharaja Cat',
+            bgSkyTop: '#7c3aed',
+            bgSkyBottom: '#fed7aa',
+            sunColor: '#fff7ed',
+            palace: true,
+            lotusPond: true,
+            catTurban: true,
+            catPlume: '#ec4899',
+            itemNormal: 'clay_diya',
+            itemBig: 'brass_pot',
+            burstColor: '#e11d48',
+            slashFx: true
+          };
         default: // zh
           return {
             title: '空手道猫 · 夕阳道场',
@@ -884,6 +1246,28 @@ const CultureTheme = {
             robeSash: '#27ae60',
             birdColor: '#e67e22'
           };
+        case 'ar':
+          return {
+            room: 'majlis',
+            signText: 'MAJLIS',
+            carpet: true,
+            food: 'falafel',
+            bubbleSuffix: ' !',
+            robeColor: '#1e3a8a',
+            robeSash: '#f59e0b',
+            birdColor: '#10b981'
+          };
+        case 'hi':
+          return {
+            room: 'ashram',
+            signText: 'ASHRAM',
+            mandala: true,
+            food: 'samosa',
+            bubbleSuffix: ' !',
+            robeColor: '#c2410c',
+            robeSash: '#fbbf24',
+            birdColor: '#06b6d4'
+          };
         default: // zh
           return {
             room: 'temple',
@@ -923,6 +1307,20 @@ const CultureTheme = {
             bgFarm: 'hacienda',
             hat: 'sombrero'
           };
+        case 'ar':
+          return {
+            crop1: 'dates',
+            crop2: 'melon',
+            bgFarm: 'oasis_grove',
+            hat: 'keffiyeh'
+          };
+        case 'hi':
+          return {
+            crop1: 'mango',
+            crop2: 'eggplant',
+            bgFarm: 'monsoon_field',
+            hat: 'pagri'
+          };
         default: // zh
           return {
             crop1: 'turnip',
@@ -943,6 +1341,10 @@ const CultureTheme = {
           return { flower: 'rose', icon: '🌹', color: '#e74c3c' };
         case 'es':
           return { flower: 'marigold', icon: '🌼', color: '#f39c12' };
+        case 'ar':
+          return { flower: 'jasmine', icon: '🌼', color: '#10b981' };
+        case 'hi':
+          return { flower: 'lotus', icon: '🪷', color: '#ec4899' };
         default: // zh
           return { flower: 'lotus', icon: '🌸', color: '#ff8fb3' };
       }
@@ -976,6 +1378,18 @@ const CultureTheme = {
       intervals: [0, 3, 5, 6, 7, 10],   // 1, b3, 4, b5, 5, b7
       rootMidi: 60,                     // C4
       bassMidi: [36, 41, 38, 43]        // C2, F2, D2, G2
+    },
+    ar: {
+      name: '阿拉伯席贾兹调式 (Maqam Hijaz)',
+      intervals: [0, 1, 4, 5, 7, 8, 10], // 1, b2, 3, 4, 5, b6, b7
+      rootMidi: 62,                     // D4
+      bassMidi: [38, 45, 39, 43]        // D2, A2, Eb2, G2
+    },
+    hi: {
+      name: '印度古典拉格 (Raga Bhairav)',
+      intervals: [0, 1, 4, 5, 7, 8, 11], // Sa, komal Re, Ga, Ma, Pa, komal Dha, Ni
+      rootMidi: 60,                     // C4
+      bassMidi: [36, 43, 37, 41]        // C2, G2, Db2, F2
     }
   },
 

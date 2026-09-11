@@ -793,6 +793,24 @@ const LevelMonk = {
       // 青柠角点缀
       ctx.fillStyle = '#7cb342';
       ctx.beginPath(); ctx.arc(10, 8, 4, 0, Math.PI * 2); ctx.fill();
+    } else if (lang === 'ar') {
+      // 中东炸鹰嘴豆丸子 (Falafel)：金黄深褐酥脆球体 + 芝麻欧芹点缀
+      ctx.fillStyle = '#8d5b2c';
+      ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#5a3818'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#65a30d'; // 欧芹香料
+      ctx.beginPath(); ctx.arc(-4, -4, 2, 0, Math.PI * 2); ctx.arc(3, 4, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fef08a'; // 白芝麻
+      ctx.beginPath(); ctx.arc(4, -3, 1.2, 0, Math.PI * 2); ctx.arc(-2, 5, 1.2, 0, Math.PI * 2); ctx.fill();
+    } else if (lang === 'hi') {
+      // 印度经典金黄咖喱角 (Samosa)：香脆三角形金黄面皮
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.moveTo(0, -14); ctx.lineTo(-14, 10); ctx.lineTo(14, 10);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#92400e'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#b45309'; // 酥脆金边
+      ctx.beginPath(); ctx.moveTo(-12, 8); ctx.lineTo(12, 8); ctx.stroke();
     } else {
       // 传统热气腾腾的小笼包/大包子
       ctx.fillStyle = '#fdf6e8';
