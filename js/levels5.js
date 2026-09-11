@@ -88,6 +88,7 @@ const LevelMahou = {
   scheduleStep(step, t, game) {
     const beat = step / 2;
     const spb = Conductor.secPerBeat();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     if (step % 2 === 0) {
       // 神秘夜晚伴奏：分解和弦（Am → F → C → G，每小节一换）
       const chords = [
@@ -98,16 +99,16 @@ const LevelMahou = {
       ];
       const b = ((beat % 4) + 4) % 4;
       const ch = chords[Math.floor(beat / 4) % 4];
-      AudioEngine.tone(t, ch[[0, 1, 2, 1][b]], spb * 0.5, 'triangle', 0.07);
-      if (b === 0) AudioEngine.tone(t, ch[0] / 2, spb * 3.2, 'sine', 0.07); // 低音垫底
+      AudioEngine.playCulturalMelody(t, ch[[0, 1, 2, 1][b]], spb * 0.5, cult, 0.14);
+      if (b === 0) AudioEngine.playCulturalBass(t, ch[0] / 2, spb * 3.2, cult, 0.12); // 低音垫底
       // 预备拍（前 4 拍滴答）
-      if (beat < 4) AudioEngine.blok(t, beat === 3 ? 1320 : 880);
+      if (beat < 4) AudioEngine.playCulturalDrum(t, 'accent', cult, beat === 3 ? 1.0 : 0.7);
     }
-    // 咒语音节：pi-ko-pon（间隔 = 速度：慢 1 拍 / 快半拍 / trance 2 拍）
+    // 咒语音节：pi-ko-pon（灵性调式音色）
     for (const [c, kind] of this._cur.commands) {
       const ivl = this.ivlOf(kind);
       for (let i = 0; i < 3; i++) {
-        if (c + i * ivl === beat) AudioEngine.blok(t, this.SYL_FREQ[i]);
+        if (c + i * ivl === beat) AudioEngine.playCulturalMelody(t, this.SYL_FREQ[i], 0.25, cult, 0.26);
       }
     }
   },

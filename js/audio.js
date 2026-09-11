@@ -1,4 +1,8 @@
-/* audio.js — Web Audio 实时合成：鼓组 / 旋律 / 音效，无需任何音频文件 */
+/* audio.js — Web Audio 实时合成与物理建模引擎
+ * 包含：基础鼓组/合成器、Karplus-Strong 拨弦物理建模（古筝/吉他/三味线）、
+ * 气流呼吸竹笛/尺八、擦弦二胡/提琴、2-Op FM 罗兹电钢琴、民族打击乐（Clave/Bongo/Taiko/Tanggu/Palmas）
+ * 以及四大文化动态乐器与调式映射分发器
+ */
 "use strict";
 
 const AudioEngine = {
@@ -74,7 +78,456 @@ const AudioEngine = {
     return this._noiseBuf;
   },
 
-  /* ---------- 打击乐（t 为 ctx 时间） ---------- */
+  /* ==============================================================
+   * 1. 物理建模与高级合成器 (Physical Modeling & Advanced Synths)
+   * 移植优化自 MusicTheory 项目
+   * ============================================================== */
+
+  /**
+   * Karplus-Strong 拨弦物理建模 (古筝 Guzheng / 尼龙吉他 Guitar / 三味线 Shamisen / 竖琴 Harp)
+   * 通过 AudioBuffer 内存预计算高精度阻尼平均反馈循环，数学严格收敛，彻底杜绝爆音与失真
+   */
+  pluck(t, freq, dur = 0.8, gain = 0.22, style = "guzheng") {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    t = this.safeTime(t);
+    dur = Math.max(0.05, dur);
+    const sampleRate = this.ctx.sampleRate;
+
+    const f = Math.max(45, Math.min(2600, freq));
+    const period = Math.max(2, Math.round(sampleRate / f));
+    const numSamples = Math.max(period * 2, Math.floor(sampleRate * dur));
+
+    const audioBuffer = this.ctx.createBuffer(1, numSamples, sampleRate);
+    const channelData = audioBuffer.getChannelData(0);
+
+    // 初始激励：根据乐器风格定制激励窗口
+    // 三味线更清脆锐利（方波/三角窗口），古筝清亮（正弦窗），吉他温润
+    for (let i = 0; i < period; i++) {
+      let win;
+      if (style === "shamisen") {
+        win = Math.sin((Math.PI * i) / period) * (1 - (i / period) * 0.4);
+      } else if (style === "guitar") {
+        win = Math.sin((Math.PI * i) / period) * 0.85;
+      } else { // guzheng / default
+        win = Math.sin((Math.PI * i) / period);
+      }
+      channelData[i] = (Math.random() * 2 - 1) * win;
+    }
+
+    // Karplus-Strong 阻尼循环: y[i] = 0.5 * (y[i - P] + y[i - P - 1]) * decay
+    let decayBase = 0.992;
+    if (style === "shamisen") decayBase = 0.982;      // 三味线衰减较快、骨板颗粒感
+    else if (style === "guitar") decayBase = 0.989;    // 尼龙吉他中等温暖
+    else if (style === "guzheng") decayBase = 0.994;   // 古筝余音缭绕长延音
+
+    const decayFactor = Math.min(0.996, decayBase + (60 / f) * 0.004);
+    for (let i = period; i < numSamples; i++) {
+      const p1 = channelData[i - period];
+      const p2 = (i - period - 1 >= 0) ? channelData[i - period - 1] : channelData[i - period];
+      channelData[i] = 0.5 * (p1 + p2) * decayFactor;
+    }
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = audioBuffer;
+
+    const env = this.ctx.createGain();
+    const tSus = t + dur * 0.75;
+    const tEnd = t + dur;
+
+    env.gain.setValueAtTime(gain, t);
+    if (tSus > t + 0.005) {
+      env.gain.setValueAtTime(gain, tSus);
+    }
+    env.gain.linearRampToValueAtTime(0.0001, tEnd);
+
+    source.connect(env);
+    env.connect(this.master);
+
+    source.start(t);
+    source.stop(tEnd + 0.04);
+  },
+
+  /**
+   * 气流呼吸竹笛 / 尺八 (Bamboo Flute / Dizi / Shakuhachi)
+   * 纯正弦振荡 + 二次偶次谐波 + 突发带通滤波气流呼吸噪声 + 延迟自然揉弦 (Vibrato LFO)
+   */
+  flute(t, freq, dur = 0.8, gain = 0.18, isShakuhachi = false) {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    t = this.safeTime(t);
+    dur = Math.max(0.05, dur);
+
+    // 主音正弦波
+    const osc = this.ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, t);
+
+    // 偶次谐波（丰富木管质感）
+    const osc2 = this.ctx.createOscillator();
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(freq * 2, t);
+    const osc2Gain = this.ctx.createGain();
+    osc2Gain.gain.setValueAtTime(0.035, t);
+    osc2.connect(osc2Gain);
+
+    // 揉弦/颤音 (Vibrato LFO: 5.5Hz)
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+    lfo.frequency.setValueAtTime(isShakuhachi ? 4.8 : 5.8, t);
+    lfoGain.gain.setValueAtTime(0, t);
+    const tVib = t + Math.min(0.2, dur * 0.4);
+    lfoGain.gain.linearRampToValueAtTime(freq * (isShakuhachi ? 0.022 : 0.015), tVib);
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    // 起吹微弱呼吸声爆破 (Breath noise)
+    const noiseDuration = Math.min(0.12, dur * 0.5);
+    const bufferSize = Math.max(128, Math.floor(this.ctx.sampleRate * noiseDuration));
+    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.setValueAtTime(freq * 1.6, t);
+    noiseFilter.Q.setValueAtTime(1.5, t);
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.018, t);
+    noiseGain.gain.linearRampToValueAtTime(0.0001, t + noiseDuration);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+
+    // 低通共鸣滤波
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(Math.min(3200, freq * 3.5), t);
+    filter.Q.setValueAtTime(0.7, t);
+
+    const env = this.ctx.createGain();
+    const att = Math.min(0.06, dur * 0.2);
+    const rel = Math.min(0.08, dur * 0.25);
+    const tAtt = t + att;
+    const tRel = Math.max(tAtt + 0.005, t + dur - rel);
+    const tEnd = Math.max(tRel + 0.005, t + dur);
+
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.linearRampToValueAtTime(gain, tAtt);
+    if (tRel > tAtt) {
+      env.gain.setValueAtTime(gain * 0.85, tRel);
+    }
+    env.gain.linearRampToValueAtTime(0.0001, tEnd);
+
+    osc.connect(filter);
+    osc2Gain.connect(filter);
+    noiseGain.connect(filter);
+    filter.connect(env);
+    env.connect(this.master);
+
+    osc.start(t); osc2.start(t); lfo.start(t); noise.start(t);
+    osc.stop(tEnd); osc2.stop(tEnd); lfo.stop(tEnd); noise.stop(t + noiseDuration);
+  },
+
+  /**
+   * 擦弦物理共振：二胡 / 小提琴 (Erhu / Violin)
+   * 锯齿波 + 弦体谐振低通滤波 + 5.5Hz 揉弦
+   */
+  bowed(t, freq, dur = 0.8, gain = 0.18) {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    t = this.safeTime(t);
+    dur = Math.max(0.05, dur);
+
+    const osc = this.ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(freq, t);
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(Math.min(2200, freq * 3.2), t);
+    filter.Q.setValueAtTime(0.8, t);
+
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+    lfo.frequency.setValueAtTime(5.5, t);
+    lfoGain.gain.setValueAtTime(0, t);
+    lfoGain.gain.linearRampToValueAtTime(freq * 0.012, t + Math.min(0.2, dur * 0.5));
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    const env = this.ctx.createGain();
+    const att = Math.min(0.06, dur * 0.2);
+    const rel = Math.min(0.08, dur * 0.25);
+    const tAtt = t + att;
+    const tRel = Math.max(tAtt + 0.005, t + dur - rel);
+    const tEnd = Math.max(tRel + 0.005, t + dur);
+
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.linearRampToValueAtTime(gain, tAtt);
+    if (tRel > tAtt) {
+      env.gain.setValueAtTime(gain * 0.8, tRel);
+    }
+    env.gain.linearRampToValueAtTime(0.0001, tEnd);
+
+    osc.connect(filter);
+    filter.connect(env);
+    env.connect(this.master);
+
+    osc.start(t); lfo.start(t);
+    osc.stop(tEnd); lfo.stop(tEnd);
+  },
+
+  /**
+   * 2-Operator FM 罗兹电钢琴 (FM Rhodes EP)
+   * 晶莹剔透的和声打击瞬态 + 温暖 4.5Hz 颤音 (Tremolo)
+   */
+  rhodes(t, freq, dur = 0.9, gain = 0.18) {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    t = this.safeTime(t);
+    dur = Math.max(0.05, dur);
+
+    const carrier = this.ctx.createOscillator();
+    carrier.type = "sine";
+    carrier.frequency.setValueAtTime(freq, t);
+
+    // 2:1 纯正八度调制器
+    const modulator = this.ctx.createOscillator();
+    modulator.type = "sine";
+    modulator.frequency.setValueAtTime(freq * 2, t);
+
+    const modGain = this.ctx.createGain();
+    modGain.gain.setValueAtTime(freq * 0.35, t);
+    modGain.gain.linearRampToValueAtTime(0.01, t + Math.min(0.25, dur * 0.6));
+
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+
+    const env = this.ctx.createGain();
+    const att = Math.min(0.015, dur * 0.1);
+    const dec = Math.min(0.18, dur * 0.4);
+    const tAtt = t + att;
+    const tDec = tAtt + dec;
+    const tEnd = Math.max(tDec + 0.01, t + dur);
+
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.linearRampToValueAtTime(gain, tAtt);
+    env.gain.linearRampToValueAtTime(gain * 0.5, tDec);
+    env.gain.linearRampToValueAtTime(0.0001, tEnd);
+
+    carrier.connect(env);
+    env.connect(this.master);
+
+    modulator.start(t); carrier.start(t);
+    modulator.stop(tEnd); carrier.stop(tEnd);
+  },
+
+  /**
+   * 真实立式木贝斯 / 暖声低音 (Upright Bass)
+   */
+  bass(t, freq, dur = 0.6, gain = 0.22, style = "upright") {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    t = this.safeTime(t);
+    dur = Math.max(0.05, dur);
+
+    const osc = this.ctx.createOscillator();
+    osc.type = style === "sub" ? "sine" : "triangle";
+    osc.frequency.setValueAtTime(freq, t);
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(style === "sub" ? 160 : 340, t);
+
+    const env = this.ctx.createGain();
+    const att = Math.min(0.02, dur * 0.1);
+    const tAtt = t + att;
+    const tEnd = Math.max(tAtt + 0.01, t + dur);
+
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.linearRampToValueAtTime(gain, tAtt);
+    env.gain.linearRampToValueAtTime(0.0001, tEnd);
+
+    osc.connect(filter);
+    filter.connect(env);
+    env.connect(this.master);
+
+    osc.start(t);
+    osc.stop(tEnd);
+  },
+
+  /**
+   * 民族打击乐器组 (Ethnic Percussion: Clave / Woodblock / Bongo / Taiko / Palmas)
+   */
+  ethnicDrum(t, type = "clave", velocity = 0.5) {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+    t = this.safeTime(t);
+
+    switch (type) {
+      case "clave": {
+        // 古巴 Clave 响木（高频 2200Hz 纯净短促脆响）
+        const osc = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(2200, t);
+        const g = velocity * 0.24;
+        env.gain.setValueAtTime(g, t);
+        env.gain.linearRampToValueAtTime(0.0001, t + 0.045);
+        osc.connect(env); env.connect(this.master);
+        osc.start(t); osc.stop(t + 0.05);
+        break;
+      }
+      case "woodblock": {
+        // 东方寺庙木鱼（1100Hz 暖色木质敲击）
+        const osc = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1100, t);
+        const g = velocity * 0.24;
+        env.gain.setValueAtTime(g, t);
+        env.gain.linearRampToValueAtTime(0.0001, t + 0.055);
+        osc.connect(env); env.connect(this.master);
+        osc.start(t); osc.stop(t + 0.06);
+        break;
+      }
+      case "bongo": {
+        // 拉丁邦戈手鼓（380Hz 滑向 260Hz 饱满击皮声）
+        const osc = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(380, t);
+        osc.frequency.linearRampToValueAtTime(260, t + 0.09);
+        const g = velocity * 0.28;
+        env.gain.setValueAtTime(g, t);
+        env.gain.linearRampToValueAtTime(0.0001, t + 0.16);
+        osc.connect(env); env.connect(this.master);
+        osc.start(t); osc.stop(t + 0.18);
+        break;
+      }
+      case "taiko":
+      case "tanggu": {
+        // 日本太鼓 / 中国大堂鼓（低沉震撼 100Hz -> 45Hz 轰鸣）
+        const osc = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(type === "taiko" ? 95 : 110, t);
+        osc.frequency.exponentialRampToValueAtTime(42, t + 0.18);
+        const g = velocity * 0.5;
+        env.gain.setValueAtTime(g, t);
+        env.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        osc.connect(env); env.connect(this.master);
+        osc.start(t); osc.stop(t + 0.34);
+        break;
+      }
+      case "palmas": {
+        // 弗拉门戈击掌（带通双层白噪声短爆）
+        const n = this.ctx.createBufferSource();
+        n.buffer = this.noiseBuffer();
+        if (!n.buffer) return;
+        const f = this.ctx.createBiquadFilter();
+        f.type = "bandpass"; f.frequency.value = 1450; f.Q.value = 1.3;
+        const env = this.ctx.createGain();
+        env.gain.setValueAtTime(velocity * 0.35, t);
+        env.gain.exponentialRampToValueAtTime(0.001, t + 0.075);
+        n.connect(f); f.connect(env); env.connect(this.master);
+        n.start(t); n.stop(t + 0.08);
+        break;
+      }
+    }
+  },
+
+  /* ==============================================================
+   * 2. 文化综合分发器 (Cultural Synthesizer Dispatchers)
+   * 根据当前文化自动调用对应的物理建模乐器
+   * ============================================================== */
+
+  _getCult(cult) {
+    return cult || (typeof I18n !== "undefined" ? I18n.lang : "zh") || "zh";
+  },
+
+  playCulturalMelody(t, freq, dur = 0.5, cult, gain = 0.2) {
+    cult = this._getCult(cult);
+    if (cult === "zh") {
+      this.pluck(t, freq, dur * 1.2, gain, "guzheng");
+    } else if (cult === "ja") {
+      this.pluck(t, freq, dur * 0.9, gain, "shamisen");
+    } else if (cult === "es") {
+      this.pluck(t, freq, dur * 1.1, gain, "guitar");
+    } else { // en
+      this.rhodes(t, freq, dur, gain);
+    }
+  },
+
+  playCulturalFlute(t, freq, dur = 0.7, cult, gain = 0.18) {
+    cult = this._getCult(cult);
+    if (cult === "ja") {
+      this.flute(t, freq, dur, gain, true);
+    } else {
+      this.flute(t, freq, dur, gain, false);
+    }
+  },
+
+  playCulturalBass(t, freq, dur = 0.6, cult, gain = 0.22) {
+    cult = this._getCult(cult);
+    if (cult === "zh") {
+      this.bowed(t, freq, dur, gain * 0.9);
+    } else if (cult === "ja") {
+      this.bass(t, freq, dur, gain, "upright");
+    } else if (cult === "es") {
+      this.pluck(t, freq, dur * 1.1, gain * 1.1, "guitar");
+    } else { // en
+      this.bass(t, freq, dur, gain, "upright");
+    }
+  },
+
+  playCulturalDrum(t, role = "kick", cult, velocity = 0.5) {
+    cult = this._getCult(cult);
+    if (role === "kick") {
+      if (cult === "zh") {
+        this.ethnicDrum(t, "tanggu", velocity * 1.1);
+      } else if (cult === "ja") {
+        this.ethnicDrum(t, "taiko", velocity * 1.1);
+      } else if (cult === "es") {
+        this.kick(t);
+        this.ethnicDrum(t, "bongo", velocity * 0.7);
+      } else {
+        this.kick(t);
+      }
+    } else if (role === "snare") {
+      if (cult === "es") {
+        this.ethnicDrum(t, "palmas", velocity);
+      } else {
+        this.snare(t);
+      }
+    } else if (role === "clap") {
+      if (cult === "es") {
+        this.ethnicDrum(t, "palmas", velocity * 1.2);
+      } else if (cult === "zh") {
+        this.ethnicDrum(t, "woodblock", velocity * 0.85);
+        this.clap(t);
+      } else {
+        this.clap(t);
+      }
+    } else if (role === "accent" || role === "cue") {
+      if (cult === "zh") {
+        this.ethnicDrum(t, "woodblock", velocity);
+      } else if (cult === "ja") {
+        this.ethnicDrum(t, "woodblock", velocity * 1.1);
+      } else if (cult === "es") {
+        this.ethnicDrum(t, "clave", velocity);
+      } else {
+        this.blok(t, 1046);
+      }
+    }
+  },
+
+  /* ==============================================================
+   * 3. 基础经典打击乐与音效（保持原有接口 100% 兼容）
+   * ============================================================== */
 
   kick(t) {
     if (!this.ctx) this.init();
@@ -132,8 +585,6 @@ const AudioEngine = {
     n.start(t); n.stop(t + dur + 0.02);
   },
 
-  /* ---------- 旋律 ---------- */
-
   tone(t, freq, dur, type, vol) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -152,13 +603,11 @@ const AudioEngine = {
     o.start(t); o.stop(t + dur + 0.02);
   },
 
-  // 木鱼声（示范段 / 模仿段用）
   blok(t, freq) {
     this.tone(t, freq || 660, 0.13, "sine", 0.32);
     this.tone(t, (freq || 660) * 2, 0.06, "sine", 0.1);
   },
 
-  // 乒乓球声
   pon(t, pitch) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -174,9 +623,7 @@ const AudioEngine = {
     o.start(t); o.stop(t + 0.1);
   },
 
-  /* ---------- 即时反馈音效 ---------- */
-
-  sfxSmash() { // 击碎（L1 命中）
+  sfxSmash() {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
     const t = this.now();
@@ -194,13 +641,13 @@ const AudioEngine = {
     this.tone(t, 220, 0.08, "square", 0.2);
   },
 
-  sfxMiss() { // 错过
+  sfxMiss() {
     const t = this.now();
     this.tone(t, 130, 0.26, "sawtooth", 0.2);
     this.tone(t, 98, 0.3, "sawtooth", 0.16);
   },
 
-  sfxCue(t) { // 物体抛出 "fwip"
+  sfxCue(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
     t = this.safeTime(t);
@@ -215,7 +662,7 @@ const AudioEngine = {
     o.start(t); o.stop(t + 0.12);
   },
 
-  sfxWhiff() { // 挥空
+  sfxWhiff() {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
     const t = this.now();
@@ -234,9 +681,6 @@ const AudioEngine = {
     }
   },
 
-  /* ---------- 新关卡专用 ---------- */
-
-  // 灌油声：按住期间持续的上升音（Fillbots）
   fillStart() {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -263,11 +707,10 @@ const AudioEngine = {
       g.gain.setValueAtTime(Math.max(0.001, g.gain.value), t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
       o.stop(t + 0.1);
-    } catch (e) { /* 已停止则忽略 */ }
+    } catch (e) {}
     this._fill = null;
   },
 
-  // 鸟队长口令（Blue Birds）："main" 低哑=啄米，"alt" 高亢两连=昂首
   squawk(t, kind) {
     if (kind === "alt") {
       this.tone(t, 990, 0.09, "square", 0.2);
@@ -277,22 +720,17 @@ const AudioEngine = {
     }
   },
 
-  // 踏步口令（Lockstep 换拍提示）
   marchCue(t) {
     this.blok(t, 1046);
     this.blok(t + 0.09, 1318);
   },
 
-  // 哨声（段落停止信号；low=true 为低音假哨声）
   whistle(t, low) {
     const p = low ? 1318 : 2093;
     this.tone(t, p, 0.12, "sine", 0.28);
     this.tone(t + 0.14, p * 0.75, 0.22, "sine", 0.28);
   },
 
-  /* ---------- 第三批关卡专用 ---------- */
-
-  // 拍手（Clappy Trio）
   clap(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -309,12 +747,10 @@ const AudioEngine = {
     n.start(t); n.stop(t + 0.1);
   },
 
-  // 踢踏声（Tap Trial）
   tick(t, pitch) {
     this.tone(t, pitch || 1800, 0.04, "square", 0.2);
   },
 
-  // 咀嚼（Munchy Monk）
   chomp(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -333,7 +769,6 @@ const AudioEngine = {
     this.tone(t, 180, 0.1, "sine", 0.2);
   },
 
-  // 激光（Shoot-"Em-Up）
   zap(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -349,7 +784,6 @@ const AudioEngine = {
     o.start(t); o.stop(t + 0.2);
   },
 
-  // 爆炸
   boom(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -366,14 +800,12 @@ const AudioEngine = {
     n.start(t); n.stop(t + 0.42);
   },
 
-  // 铃铛（Showtime），pitch 决定起跳间隔
   bell(t, pitch) {
     const p = pitch || 1568;
     this.tone(t, p, 0.5, "sine", 0.26);
     this.tone(t, p * 2.01, 0.3, "sine", 0.09);
   },
 
-  // 魔法绽放（Mahou Tsukai）
   sparkle(t) {
     this.tone(t, 1046, 0.08, "sine", 0.2);
     this.tone(t + 0.06, 1318, 0.08, "sine", 0.2);
@@ -381,7 +813,6 @@ const AudioEngine = {
     this.tone(t + 0.18, 2093, 0.2, "sine", 0.18);
   },
 
-  // DJ 搓碟
   scratch(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -401,7 +832,6 @@ const AudioEngine = {
     n.start(t); n.stop(t + 0.28);
   },
 
-  // 重拳击中
   punch(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -417,7 +847,6 @@ const AudioEngine = {
     o.start(t); o.stop(t + 0.16);
   },
 
-  // 挥棒破空（排程版）
   swish(t) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -436,7 +865,6 @@ const AudioEngine = {
     n.start(t); n.stop(t + 0.16);
   },
 
-  // 合唱垫底（Glee Club）：按住期间持续的 C 大三和弦
   choirStart() {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
@@ -466,36 +894,73 @@ const AudioEngine = {
       g.gain.setValueAtTime(Math.max(0.001, g.gain.value), t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
       oscs.forEach(o => o.stop(t + 0.18));
-    } catch (e) { /* 已停止则忽略 */ }
+    } catch (e) {}
     this._choir = null;
   },
 
-  /* ---------- UI 交互音效 ---------- */
+  /* ---------- UI 交互音效 (支持文化定制) ---------- */
 
-  playUI(kind) {
+  playUI(kind, cult) {
     if (!this.ctx) this.init();
     if (!this.ctx) return;
+    cult = this._getCult(cult);
     const now = this.now();
     if (kind === "start") {
-      // 开始游戏：轻快的三连音与底鼓
-      this.kick(now);
-      this.tone(now + 0.04, 523.25, 0.12, "triangle", 0.22); // C5
-      this.tone(now + 0.10, 659.25, 0.14, "triangle", 0.22); // E5
-      this.tone(now + 0.16, 783.99, 0.20, "sine", 0.25);     // G5
+      // 开始游戏：各文化招牌三连音
+      if (cult === "zh") {
+        this.ethnicDrum(now, "tanggu", 0.8);
+        this.pluck(now + 0.04, 523.25, 0.4, 0.25, "guzheng"); // 宫 C5
+        this.pluck(now + 0.10, 659.25, 0.4, 0.25, "guzheng"); // 角 E5
+        this.pluck(now + 0.16, 783.99, 0.6, 0.28, "guzheng"); // 徵 G5
+      } else if (cult === "ja") {
+        this.ethnicDrum(now, "taiko", 0.85);
+        this.pluck(now + 0.04, 587.33, 0.35, 0.26, "shamisen");
+        this.pluck(now + 0.10, 622.25, 0.35, 0.26, "shamisen");
+        this.pluck(now + 0.16, 783.99, 0.5, 0.28, "shamisen");
+      } else if (cult === "es") {
+        this.ethnicDrum(now, "bongo", 0.7);
+        this.ethnicDrum(now + 0.08, "clave", 0.8);
+        this.pluck(now + 0.04, 493.88, 0.4, 0.25, "guitar"); // B4
+        this.pluck(now + 0.10, 523.25, 0.4, 0.25, "guitar"); // C5
+        this.pluck(now + 0.16, 659.25, 0.6, 0.28, "guitar"); // E5
+      } else { // en
+        this.kick(now);
+        this.rhodes(now + 0.04, 523.25, 0.35, 0.24);
+        this.rhodes(now + 0.10, 659.25, 0.35, 0.24);
+        this.rhodes(now + 0.16, 783.99, 0.55, 0.26);
+      }
     } else if (kind === "select") {
-      // 选关：清脆木质琴音
-      this.tone(now, 659.25, 0.08, "sine", 0.2);
-      this.tone(now + 0.06, 880, 0.10, "sine", 0.2);
+      if (cult === "zh") {
+        this.pluck(now, 659.25, 0.35, 0.22, "guzheng");
+        this.pluck(now + 0.06, 880.00, 0.4, 0.22, "guzheng");
+      } else if (cult === "ja") {
+        this.pluck(now, 587.33, 0.3, 0.24, "shamisen");
+        this.pluck(now + 0.06, 783.99, 0.35, 0.24, "shamisen");
+      } else if (cult === "es") {
+        this.pluck(now, 659.25, 0.35, 0.24, "guitar");
+        this.ethnicDrum(now + 0.06, "clave", 0.7);
+      } else {
+        this.rhodes(now, 659.25, 0.3, 0.2);
+        this.rhodes(now + 0.06, 880.00, 0.35, 0.2);
+      }
     } else if (kind === "lang") {
-      // 切换语言：悦耳双音
-      this.tone(now, 783.99, 0.06, "sine", 0.18);
-      this.tone(now + 0.05, 1046.5, 0.12, "sine", 0.18);
+      if (cult === "zh") {
+        this.pluck(now, 783.99, 0.4, 0.24, "guzheng");
+        this.pluck(now + 0.05, 1046.5, 0.5, 0.24, "guzheng");
+      } else if (cult === "ja") {
+        this.pluck(now, 783.99, 0.35, 0.25, "shamisen");
+        this.ethnicDrum(now + 0.05, "woodblock", 0.8);
+      } else if (cult === "es") {
+        this.pluck(now, 659.25, 0.35, 0.25, "guitar");
+        this.ethnicDrum(now + 0.05, "bongo", 0.7);
+      } else {
+        this.rhodes(now, 783.99, 0.3, 0.2);
+        this.rhodes(now + 0.05, 1046.5, 0.4, 0.2);
+      }
     } else if (kind === "back") {
-      // 返回：下行音
       this.tone(now, 440, 0.06, "sine", 0.15);
       this.tone(now + 0.04, 330, 0.08, "sine", 0.15);
     } else {
-      // 普通轻触
       this.tone(now, 880, 0.04, "sine", 0.14);
     }
   }

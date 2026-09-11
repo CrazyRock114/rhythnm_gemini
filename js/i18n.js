@@ -947,6 +947,65 @@ const CultureTheme = {
           return { flower: 'lotus', icon: '🌸', color: '#ff8fb3' };
       }
     }
+  },
+
+  /* --------------------------------------------------------------
+   * 民族调式音阶数据 (MusicTheory 调式体系映射)
+   * -------------------------------------------------------------- */
+  scales: {
+    zh: {
+      name: '中国五声调式 (宫调/羽调)',
+      intervals: [0, 2, 4, 7, 9],       // 1, 2, 3, 5, 6 (宫 商 角 徵 羽)
+      rootMidi: 60,                     // C4
+      bassMidi: [36, 43, 38, 41]        // C2, G2, D2, F2
+    },
+    ja: {
+      name: '日本平调子 / 阴旋法 (Hirajoshi)',
+      intervals: [0, 2, 3, 7, 8],       // 1, 2, b3, 5, b6 (平调子)
+      rootMidi: 62,                     // D4
+      bassMidi: [38, 45, 39, 43]        // D2, A2, Eb2, G2
+    },
+    es: {
+      name: '西班牙弗拉门戈 (Phrygian Dominant)',
+      intervals: [0, 1, 4, 5, 7, 8, 10], // 1, b2, 3, 4, 5, b6, b7
+      rootMidi: 64,                     // E4
+      bassMidi: [40, 41, 43, 45]        // E2, F2, G2, A2
+    },
+    en: {
+      name: '美式蓝调 / 自然大调 (Blues / Major)',
+      intervals: [0, 3, 5, 6, 7, 10],   // 1, b3, 4, b5, 5, b7
+      rootMidi: 60,                     // C4
+      bassMidi: [36, 41, 38, 43]        // C2, F2, D2, G2
+    }
+  },
+
+  midiToFreq(midi) {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  },
+
+  getScaleFreq(cult, degree, octaveOffset = 0) {
+    cult = cult || (typeof I18n !== 'undefined' ? I18n.lang : 'zh') || 'zh';
+    const s = this.scales[cult] || this.scales.zh;
+    const len = s.intervals.length;
+    const oct = Math.floor(degree / len) + octaveOffset;
+    const idx = ((degree % len) + len) % len;
+    const midi = s.rootMidi + s.intervals[idx] + oct * 12;
+    return this.midiToFreq(midi);
+  },
+
+  getScaleNotes(cult, count = 5, octaveOffset = 0) {
+    const res = [];
+    for (let i = 0; i < count; i++) {
+      res.push(this.getScaleFreq(cult, i, octaveOffset));
+    }
+    return res;
+  },
+
+  getScaleBass(cult, stepIdx = 0) {
+    cult = cult || (typeof I18n !== 'undefined' ? I18n.lang : 'zh') || 'zh';
+    const s = this.scales[cult] || this.scales.zh;
+    const midi = s.bassMidi[stepIdx % s.bassMidi.length];
+    return this.midiToFreq(midi);
   }
 };
 

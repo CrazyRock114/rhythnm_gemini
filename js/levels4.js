@@ -687,20 +687,30 @@ const LevelMonk = {
   scheduleStep(step, t, game) {
     const beat = step / 2;
     const spb = Conductor.secPerBeat();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     const b = ((beat % 4) + 4) % 4;
-    // 禅寺伴奏：低鼓 + 五声音阶弹拨
+    // 禅意/风味伴奏：低音大鼓 + 调式乐器弹拨
     if (step % 2 === 0) {
-      if (b === 0) AudioEngine.tone(t, 82, 0.18, 'sine', 0.24); // 堂鼓
-      const mel = [659.25, 587.33, 523.25, 587.33, 659.25, 783.99, 880, 783.99];
-      AudioEngine.tone(t, mel[Math.floor(beat) % 8], spb * 0.38, 'triangle', 0.07);
-      if (b === 0) AudioEngine.tone(t, 130.81, spb * 1.6, 'sine', 0.07); // 低吟 drone
+      if (b === 0) AudioEngine.playCulturalDrum(t, 'kick', cult, 0.9);
+      const notes = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleNotes)
+        ? CultureTheme.getScaleNotes(cult, 8)
+        : [659.25, 587.33, 523.25, 587.33, 659.25, 783.99, 880, 783.99];
+      AudioEngine.playCulturalMelody(t, notes[Math.floor(beat) % notes.length], spb * 0.45, cult, 0.15);
+      if (b === 0) {
+        const bass = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleBass)
+          ? CultureTheme.getScaleBass(cult, 0)
+          : 130.81;
+        AudioEngine.playCulturalBass(t, bass, spb * 1.6, cult, 0.15);
+      }
       // 预备拍
-      if (beat < 4) AudioEngine.blok(t, beat === 3 ? 1320 : 880);
+      if (beat < 4) AudioEngine.playCulturalDrum(t, 'accent', cult, beat === 3 ? 1.0 : 0.7);
     }
-    // 指令唱词：k 个音，半拍一个，音高逐个上扬
+    // 指令唱词：k 个音，半拍一个，灵动笛音（竹笛/尺八/长笛）逐个上扬报数
     for (const [c, k] of this._cur.commands) {
       for (let i = 0; i < k; i++) {
-        if (beat === c + i * 0.5) AudioEngine.blok(t, 587 + i * 110);
+        if (beat === c + i * 0.5) {
+          AudioEngine.playCulturalFlute(t, 587.33 + i * 110, 0.22, cult, 0.24);
+        }
       }
     }
   },

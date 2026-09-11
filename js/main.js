@@ -172,12 +172,12 @@ const Main = {
     document.querySelectorAll('.lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         AudioEngine.unlock();
-        AudioEngine.playUI('lang');
         const lang = btn.dataset.lang;
         if (lang && typeof I18n !== 'undefined') {
           I18n.setLanguage(lang);
           this.updateLanguageUI();
         }
+        AudioEngine.playUI('lang', lang);
       });
     });
     window.addEventListener('languagechanged', () => this.updateLanguageUI());

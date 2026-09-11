@@ -198,21 +198,31 @@ const LevelKarate = {
   scheduleStep(step, t, game) {
     const beat = step / 2;
     const spb = Conductor.secPerBeat();
-    // 鼓组：动次打次
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
+    // 鼓组与特色低音
     if (step % 2 === 0) {
       const b = ((beat % 4) + 4) % 4;
-      if (b === 0 || b === 2) AudioEngine.kick(t);
-      if (b === 1 || b === 3) AudioEngine.snare(t);
-      // 贝斯
-      const bass = [110, 110, 130.81, 98][b];
-      AudioEngine.tone(t, bass, spb * 0.45, 'triangle', 0.22);
-      // 预备拍（前 4 拍滴答）
-      if (beat < 4) AudioEngine.blok(t, beat === 3 ? 1320 : 880);
+      if (b === 0 || b === 2) AudioEngine.playCulturalDrum(t, 'kick', cult);
+      if (b === 1 || b === 3) AudioEngine.playCulturalDrum(t, 'snare', cult);
+      // 民族调式贝斯（二胡低吟/三味线低音/弗拉门戈吉他/爵士贝斯）
+      const bass = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleBass)
+        ? CultureTheme.getScaleBass(cult, b)
+        : [110, 110, 130.81, 98][b];
+      AudioEngine.playCulturalBass(t, bass, spb * 0.45, cult);
+      // 预备拍（前 4 拍滴答，木鱼/板鼓/响板）
+      if (beat < 4) AudioEngine.playCulturalDrum(t, 'accent', cult, beat === 3 ? 1.0 : 0.7);
     }
     AudioEngine.hihat(t, false);
-    // 物品抛出提示音（目标拍前 2 拍）
+    // 物品抛出提示音（目标拍前 2 拍：古筝/三味线/吉他/Rhodes 弹拨）
     for (const n of game.chart) {
-      if ((n.beat - 2) * 2 === step) AudioEngine.sfxCue(t);
+      if ((n.beat - 2) * 2 === step) {
+        if (typeof AudioEngine.playCulturalMelody === 'function' && typeof CultureTheme !== 'undefined' && CultureTheme.getScaleFreq) {
+          const cueFreq = CultureTheme.getScaleFreq(cult, n.big ? 4 : 2, 1);
+          AudioEngine.playCulturalMelody(t, cueFreq, 0.35, cult, 0.28);
+        } else {
+          AudioEngine.sfxCue(t);
+        }
+      }
     }
   },
 
@@ -552,21 +562,29 @@ const LevelEcho = {
   scheduleStep(step, t, game) {
     const beat = step / 2;
     const spb = Conductor.secPerBeat();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     if (step % 2 === 0) {
       const b = ((beat % 4) + 4) % 4;
-      if (b === 0) AudioEngine.kick(t);
-      if (b === 2) AudioEngine.snare(t);
-      AudioEngine.tone(t, [87.31, 87.31, 98, 110][b], spb * 0.4, 'triangle', 0.16);
-      if (beat < 4) AudioEngine.blok(t, beat === 3 ? 1320 : 880);
+      if (b === 0) AudioEngine.playCulturalDrum(t, 'kick', cult);
+      if (b === 2) AudioEngine.playCulturalDrum(t, 'snare', cult);
+      const bass = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleBass)
+        ? CultureTheme.getScaleBass(cult, b)
+        : [87.31, 87.31, 98, 110][b];
+      AudioEngine.playCulturalBass(t, bass, spb * 0.4, cult);
+      if (beat < 4) AudioEngine.playCulturalDrum(t, 'accent', cult, beat === 3 ? 1.0 : 0.7);
     }
     AudioEngine.hihat(t, false);
-    // 示范段：演奏节奏型
+    // 示范段：老师演奏节奏型（使用各文化调式音阶与物理建模乐器）
     const info = this.phaseOf(beat);
     if (info && info.phase === 'demo') {
       const pat = this._cur.patterns[info.round];
+      const notes = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleNotes)
+        ? CultureTheme.getScaleNotes(cult, 5)
+        : this.scale;
       for (let i = 0; i < pat.length; i++) {
         if (this.roundStart(info.round) + pat[i] === beat) {
-          AudioEngine.blok(t, this.scale[i % this.scale.length]);
+          const freq = notes[i % notes.length];
+          AudioEngine.playCulturalMelody(t, freq, 0.45, cult, 0.28);
         }
       }
     }
@@ -574,13 +592,18 @@ const LevelEcho = {
 
   onJudge(game, note, res) {
     const st = Conductor.songTime();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     if (res === 'miss') {
       game.echo.sadT = st;
     } else {
       game.echo.happyT = st;
       game.echo.hitFlash[note.beat] = st;
-      // 玩家敲出对应的音高，形成「演奏」感
-      AudioEngine.blok(AudioEngine.now(), this.scale[note.idx % this.scale.length]);
+      // 玩家敲出对应的音高，形成与老师呼应的乐器演奏感
+      const notes = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleNotes)
+        ? CultureTheme.getScaleNotes(cult, 5)
+        : this.scale;
+      const freq = notes[note.idx % notes.length];
+      AudioEngine.playCulturalMelody(AudioEngine.now(), freq, 0.45, cult, 0.3);
       game.burst(480, 430, '#8be9fd', 8);
     }
   },
@@ -811,18 +834,23 @@ const LevelPong = {
   },
 
   init(game) {
+    if (!this._cur) this.buildChart('easy');
     game.pong = { events: this.buildEvents(), swingT: -9, cpuSwingT: -9, sadT: -9 };
   },
 
   scheduleStep(step, t, game) {
     const beat = step / 2;
     const spb = Conductor.secPerBeat();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     if (step % 2 === 0) {
       const b = ((beat % 4) + 4) % 4;
-      AudioEngine.kick(t);
-      if (b === 1 || b === 3) AudioEngine.snare(t);
-      AudioEngine.tone(t, [82.41, 82.41, 98, 110][b], spb * 0.4, 'sawtooth', 0.12);
-      if (beat < 4) AudioEngine.blok(t, beat === 3 ? 1320 : 880);
+      AudioEngine.playCulturalDrum(t, 'kick', cult);
+      if (b === 1 || b === 3) AudioEngine.playCulturalDrum(t, 'snare', cult);
+      const bass = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleBass)
+        ? CultureTheme.getScaleBass(cult, b)
+        : [82.41, 82.41, 98, 110][b];
+      AudioEngine.playCulturalBass(t, bass, spb * 0.4, cult);
+      if (beat < 4) AudioEngine.playCulturalDrum(t, 'accent', cult, beat === 3 ? 1.0 : 0.7);
     } else {
       AudioEngine.hihat(t, true); // 反拍开镲
     }

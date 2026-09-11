@@ -78,17 +78,22 @@ const LevelClappy = {
   scheduleStep(step, t, game) {
     const beat = step / 2;
     const spb = Conductor.secPerBeat();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     const b = ((beat % 4) + 4) % 4;
-    // 轻柔爵士：大鼓 1、3 拍，军鼓 2、4 拍，低音贝斯
+    // 伴奏组：大鼓 1、3 拍，军鼓 2、4 拍，特色低音贝斯
     if (step % 2 === 0) {
-      if (b === 0 || b === 2) AudioEngine.kick(t);
-      if (b === 1 || b === 3) AudioEngine.snare(t);
-      AudioEngine.tone(t, [65.4, 73.4, 82.4, 98][b], spb * 0.5, 'triangle', 0.2);
+      if (b === 0 || b === 2) AudioEngine.playCulturalDrum(t, 'kick', cult);
+      if (b === 1 || b === 3) AudioEngine.playCulturalDrum(t, 'snare', cult);
+      const bass = (typeof CultureTheme !== 'undefined' && CultureTheme.getScaleBass)
+        ? CultureTheme.getScaleBass(cult, b)
+        : [65.4, 73.4, 82.4, 98][b];
+      AudioEngine.playCulturalBass(t, bass, spb * 0.5, cult);
       // 预备拍（前 4 拍滴答）
-      if (beat < 4) AudioEngine.blok(t, beat === 3 ? 1320 : 880);
-      // 轻柔钢琴垫音（两拍一音）
+      if (beat < 4) AudioEngine.playCulturalDrum(t, 'accent', cult, beat === 3 ? 1.0 : 0.7);
+      // 旋律垫音（两拍一音：Rhodes/古筝/三味线/吉他）
       if (beat >= 4 && beat % 2 === 0) {
-        AudioEngine.tone(t, [329.63, 349.23, 392, 349.23][Math.floor(beat / 2) % 4], spb * 0.9, 'sine', 0.05);
+        const chordNotes = [329.63, 349.23, 392, 349.23];
+        AudioEngine.playCulturalMelody(t, chordNotes[Math.floor(beat / 2) % 4], spb * 0.9, cult, 0.14);
       }
     } else {
       AudioEngine.hihat(t, false); // 反拍踩镲，留出正拍给拍手声
@@ -96,18 +101,19 @@ const LevelClappy = {
     // 同伴示范拍手（玩家的第三声不预排，由玩家自己拍）
     // 0.75 拍间隔落在半拍网格之间：按时间窗排程并补偿偏移，与音符严格对齐
     for (const d of this._cur.demos) {
-      if (d >= beat && d < beat + 0.5) AudioEngine.clap(t + (d - beat) * spb);
+      if (d >= beat && d < beat + 0.5) AudioEngine.playCulturalDrum(t + (d - beat) * spb, 'clap', cult);
     }
   },
 
   onJudge(game, note, res) {
     const st = Conductor.songTime();
+    const cult = typeof CultureTheme !== 'undefined' ? CultureTheme.get() : 'zh';
     if (res === 'miss') {
       game.clappy.sadT = st;
     } else {
       game.clappy.clapT = st;
       game.clappy.happyT = st;
-      AudioEngine.clap(AudioEngine.now()); // 拍中了：第三声融入节奏
+      AudioEngine.playCulturalDrum(AudioEngine.now(), 'clap', cult); // 拍中了：融入节奏
       game.burst(this.CATX[2], this.CATY - 20, '#ffffff', 8);
     }
   },
