@@ -12,6 +12,7 @@ const AudioEngine = {
   _noiseBuf: null,
   _fill: null,
   _choir: null,
+  _unlockPromise: null,
 
   init() {
     if (this.ctx) return this.ctx;
@@ -24,6 +25,13 @@ const AudioEngine = {
       this.comp = this.ctx.createDynamicsCompressor();
       this.master.connect(this.comp);
       this.comp.connect(this.ctx.destination);
+
+      // 监听状态变化
+      this.ctx.onstatechange = () => {
+        if (this.ctx && this.ctx.state === 'running') {
+          this._unlockPromise = null;
+        }
+      };
     } catch (e) {
       console.warn("AudioContext init failed:", e);
     }
@@ -31,27 +39,43 @@ const AudioEngine = {
   },
 
   async resume() {
-    await this.unlock();
+    return this.unlock();
   },
 
-  async unlock() {
+  unlock() {
     if (!this.ctx) this.init();
-    if (!this.ctx) return;
-    if (this.ctx.state !== "running") {
-      try {
-        await this.ctx.resume();
-      } catch (e) {
-        console.warn("AudioContext resume failed:", e);
-      }
-    }
-    // iOS / Safari 强制打通底层硬件音频通道（播放 1 采样无声音频）
+    if (!this.ctx) return Promise.resolve();
+
+    // 1. 同步在手势调用栈播放 1 采样无声音频（iOS Safari 必须在同步手势中触发，不可 await）
     try {
-      const buf = this.ctx.createBuffer(1, 1, 22050);
+      const sampleRate = this.ctx.sampleRate || 44100;
+      const buf = this.ctx.createBuffer(1, 1, sampleRate);
       const src = this.ctx.createBufferSource();
       src.buffer = buf;
       src.connect(this.ctx.destination);
       src.start(0);
     } catch (e) {}
+
+    if (this.ctx.state === "running") {
+      return Promise.resolve();
+    }
+
+    // 2. 并发 Mutex 锁，防止短时间内 touchstart+touchend+pointerdown+click 触发多个 resume 导致竞争挂起
+    if (this._unlockPromise) {
+      return this._unlockPromise;
+    }
+
+    this._unlockPromise = (async () => {
+      try {
+        await this.ctx.resume();
+      } catch (e) {
+        console.warn("AudioContext resume failed:", e);
+      } finally {
+        this._unlockPromise = null;
+      }
+    })();
+
+    return this._unlockPromise;
   },
 
   now() {

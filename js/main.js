@@ -24,12 +24,25 @@ const Main = {
   },
 
   init() {
+    // 强制关闭浏览器跨刷新滚动恢复，并重置滚动位置为 (0,0)
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
     if (typeof I18n !== 'undefined') I18n.init();
     this.canvas = document.getElementById('game-canvas');
     this.ctx = this.canvas.getContext('2d');
     document.body.classList.toggle('is-touch', this.isTouch);
     this.fitCanvas();
     window.addEventListener('resize', () => this.fitCanvas());
+    window.addEventListener('orientationchange', () => setTimeout(() => this.fitCanvas(), 100));
+    window.addEventListener('load', () => this.fitCanvas());
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => this.fitCanvas());
+      const app = document.getElementById('app');
+      if (app) ro.observe(app);
+    }
 
     // 语言切换栏监听
     this.setupLanguageSwitcher();
@@ -50,8 +63,8 @@ const Main = {
       window.addEventListener(evt, unlock, { passive: true });
     });
 
-    document.getElementById('btn-start').addEventListener('click', () => {
-      AudioEngine.unlock();
+    document.getElementById('btn-start').addEventListener('click', async () => {
+      await AudioEngine.unlock();
       AudioEngine.playUI('start');
       this.showSelect();
     });
@@ -91,12 +104,17 @@ const Main = {
     this.updateLanguageUI();
 
     // 键盘输入
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keydown', async (e) => {
+      AudioEngine.unlock();
       if (e.repeat) return;
       if (this.MAIN_KEYS.includes(e.code)) {
         e.preventDefault();
         if (this.state === 'game') Game.press('main');
-        else if (this.state === 'title') this.showSelect();
+        else if (this.state === 'title') {
+          await AudioEngine.unlock();
+          AudioEngine.playUI('start');
+          this.showSelect();
+        }
       } else if (this.ALT_KEYS.includes(e.code)) {
         e.preventDefault();
         if (this.state === 'game' && Game.level && Game.level.usesAlt) Game.press('alt');
@@ -152,13 +170,15 @@ const Main = {
   },
 
   fitCanvas() {
-    // 以 #app 的布局尺寸为准（强制横屏时 #app 宽高为 100vh/100vw）
+    // 采用双重安全回退尺寸，杜绝 DOM 尚未完成计算或被意外折叠为 0 的情况
     const app = document.getElementById('app');
-    const w = app.clientWidth || window.innerWidth;
-    const h = app.clientHeight || window.innerHeight;
+    const w = Math.max(window.innerWidth || 0, app ? app.clientWidth : 0, 320);
+    const h = Math.max(window.innerHeight || 0, app ? app.clientHeight : 0, 240);
     const scale = Math.min(w / 960, h / 540) * 0.96;
-    this.canvas.style.width = (960 * scale) + 'px';
-    this.canvas.style.height = (540 * scale) + 'px';
+    if (this.canvas) {
+      this.canvas.style.width = Math.max(160, 960 * scale) + 'px';
+      this.canvas.style.height = Math.max(90, 540 * scale) + 'px';
+    }
   },
 
   show(id) {
@@ -274,6 +294,16 @@ const Main = {
 
     // 1. 优先解锁并唤醒音频引擎（必须在 requestFullscreen 之前，确保手势凭据优先授予 Web Audio）
     await AudioEngine.unlock();
+
+    // 等待 AudioContext 真正进入 running 状态（最多等待 300ms 避免过长阻塞）
+    if (AudioEngine.ctx && AudioEngine.ctx.state !== 'running') {
+      try {
+        await Promise.race([
+          AudioEngine.unlock(),
+          new Promise(r => setTimeout(r, 300))
+        ]);
+      } catch (e) {}
+    }
 
     // 每关的操作提示
     document.getElementById('hud-tip').textContent =
