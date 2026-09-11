@@ -30,7 +30,7 @@ const Conductor = {
   // 开始一首 bpm 的曲子，留出短延迟让第一拍不突兀
   start(bpm) {
     this.bpm = bpm;
-    this.startTime = AudioEngine.now() + 0.15;
+    this.startTime = AudioEngine.now() + 0.25;
   }
 };
 

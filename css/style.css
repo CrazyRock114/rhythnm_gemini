@@ -149,6 +149,26 @@ h2 {
 
 .btn-row { margin-top: 24px; }
 
+.btn-sound {
+  font-size: 14px;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffd94d;
+  border: 1px solid rgba(255, 217, 77, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  margin-top: 10px;
+}
+.btn-sound:hover {
+  background: rgba(255, 217, 77, 0.15);
+  border-color: #ffd94d;
+}
+.btn-sound.ready {
+  background: rgba(125, 227, 139, 0.15);
+  border-color: #7de38b;
+  color: #7de38b;
+}
+
 /* ---------- 难度选择 ---------- */
 .btn-diff { min-width: 130px; font-size: 22px; padding: 16px 26px; }
 .btn-diff.easy { background: linear-gradient(#a8e6a1, #7de38b); box-shadow: 0 4px 0 #4a9e56; }

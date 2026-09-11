@@ -28,6 +28,8 @@ const I18n = {
       hint_start: '跟着音乐节拍，在正确的瞬间按键！',
       btn_start: '开始游戏',
       hint_audio: '（首次点击会开启声音，请调高音量 🔊）',
+      btn_sound_check: '🔊 试听音效',
+      sound_ready: '🔊 声音已开启！',
       select_level: '选择关卡',
       select_diff: '选择难度',
       btn_retry: '再来一次',
@@ -194,6 +196,8 @@ const I18n = {
       hint_start: 'Follow the rhythm and hit the keys at the perfect moment!',
       btn_start: 'START GAME',
       hint_audio: '(First click enables audio, please turn up volume 🔊)',
+      btn_sound_check: '🔊 Test Sound',
+      sound_ready: '🔊 Sound Ready!',
       select_level: 'Select Level',
       select_diff: 'Select Difficulty',
       btn_retry: 'Play Again',
@@ -355,6 +359,8 @@ const I18n = {
       hint_start: 'リズムに乗って、タイミングよくボタンを押そう！',
       btn_start: 'ゲームスタート',
       hint_audio: '（最初のタップで音が出ます。音量を上げてください 🔊）',
+      btn_sound_check: '🔊 サウンドテスト',
+      sound_ready: '🔊 音声準備完了！',
       select_level: 'ステージ選択',
       select_diff: '難易度選択',
       btn_retry: 'もう一度',
@@ -516,6 +522,8 @@ const I18n = {
       hint_start: '¡Sigue el ritmo y pulsa en el momento exacto!',
       btn_start: 'INICIAR JUEGO',
       hint_audio: '(El primer clic activa el sonido, sube el volumen 🔊)',
+      btn_sound_check: '🔊 Probar sonido',
+      sound_ready: '🔊 ¡Sonido activado!',
       select_level: 'Seleccionar Nivel',
       select_diff: 'Seleccionar Dificultad',
       btn_retry: 'Reintentar',
@@ -673,7 +681,10 @@ const I18n = {
   },
 
   init() {
-    const saved = localStorage.getItem('rhythm_king_lang');
+    let saved = null;
+    try {
+      saved = localStorage.getItem('rhythm_king_lang');
+    } catch (e) {}
     if (saved && this.SUPPORTED.includes(saved)) {
       this.lang = saved;
     } else {
@@ -684,14 +695,20 @@ const I18n = {
       else if (nav.startsWith('en')) this.lang = 'en';
       else this.lang = this.DEFAULT;
     }
-    document.documentElement.lang = this.lang === 'zh' ? 'zh-CN' : this.lang;
+    if (document && document.documentElement) {
+      document.documentElement.lang = this.lang === 'zh' ? 'zh-CN' : this.lang;
+    }
   },
 
   setLanguage(lang) {
     if (!this.SUPPORTED.includes(lang)) return;
     this.lang = lang;
-    localStorage.setItem('rhythm_king_lang', lang);
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+    try {
+      localStorage.setItem('rhythm_king_lang', lang);
+    } catch (e) {}
+    if (document && document.documentElement) {
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+    }
 
     // 更新 DOM 中所有 [data-i18n]
     this.updateDOM();

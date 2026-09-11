@@ -44,18 +44,46 @@ const Main = {
       this.fitCanvas();
     });
 
-    // 浏览器自动播放策略：必须在用户手势后创建/恢复 AudioContext
-    const unlock = () => { AudioEngine.init(); AudioEngine.resume(); };
-    window.addEventListener('pointerdown', unlock);
-    window.addEventListener('keydown', unlock);
+    // 浏览器自动播放策略：在任何可能的用户手势中解锁并激活 AudioContext
+    const unlock = () => { AudioEngine.unlock(); };
+    ['click', 'pointerdown', 'touchstart', 'touchend', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, unlock, { passive: true });
+    });
 
-    document.getElementById('btn-start').addEventListener('click', () => this.showSelect());
-    document.getElementById('btn-retry').addEventListener('click', () => this.startLevel(this.currentLevel, this.currentMode));
-    document.getElementById('btn-back').addEventListener('click', () => this.showSelect());
-    document.getElementById('btn-diff-back').addEventListener('click', () => this.showSelect());
+    document.getElementById('btn-start').addEventListener('click', () => {
+      AudioEngine.unlock();
+      AudioEngine.playUI('start');
+      this.showSelect();
+    });
+    const btnSound = document.getElementById('btn-sound-check');
+    if (btnSound) {
+      btnSound.addEventListener('click', async () => {
+        await AudioEngine.unlock();
+        AudioEngine.playUI('start');
+        btnSound.textContent = (typeof I18n !== 'undefined') ? I18n.t('sound_ready') : '🔊 声音已开启！';
+        btnSound.classList.add('ready');
+      });
+    }
+    document.getElementById('btn-retry').addEventListener('click', () => {
+      AudioEngine.unlock();
+      AudioEngine.playUI('tap');
+      if (this.currentLevel) this.startLevel(this.currentLevel, this.currentMode);
+    });
+    document.getElementById('btn-back').addEventListener('click', () => {
+      AudioEngine.playUI('back');
+      this.showSelect();
+    });
+    document.getElementById('btn-diff-back').addEventListener('click', () => {
+      AudioEngine.playUI('back');
+      this.showSelect();
+    });
     // 难度按钮
     document.querySelectorAll('.btn-diff').forEach(btn => {
-      btn.addEventListener('click', () => this.startLevel(this.currentLevel, btn.dataset.mode));
+      btn.addEventListener('click', () => {
+        AudioEngine.unlock();
+        AudioEngine.playUI('tap');
+        this.startLevel(this.currentLevel, btn.dataset.mode);
+      });
     });
 
     // 生成选关卡片
@@ -142,8 +170,9 @@ const Main = {
 
   setupLanguageSwitcher() {
     document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
+      btn.addEventListener('click', () => {
+        AudioEngine.unlock();
+        AudioEngine.playUI('lang');
         const lang = btn.dataset.lang;
         if (lang && typeof I18n !== 'undefined') {
           I18n.setLanguage(lang);
@@ -183,7 +212,11 @@ const Main = {
         '<div class="lv-name">' + lv.name + '</div>' +
         '<div class="lv-desc">' + lv.desc + '</div>' +
         '<div class="lv-best" data-lv="' + lv.id + '"></div>';
-      btn.addEventListener('click', () => this.showDiff(lv));
+      btn.addEventListener('click', () => {
+        AudioEngine.unlock();
+        AudioEngine.playUI('select');
+        this.showDiff(lv);
+      });
       list.appendChild(btn);
     }
     this.renderBest();
@@ -233,11 +266,15 @@ const Main = {
     }
   },
 
-  startLevel(lv, mode) {
+  async startLevel(lv, mode) {
     this.currentLevel = lv;
     this.currentMode = mode || 'easy';
     this.state = 'game';
     this.show(null);
+
+    // 1. 优先解锁并唤醒音频引擎（必须在 requestFullscreen 之前，确保手势凭据优先授予 Web Audio）
+    await AudioEngine.unlock();
+
     // 每关的操作提示
     document.getElementById('hud-tip').textContent =
       lv.hint || (typeof I18n !== 'undefined' ? I18n.t('hud_tip_default') : '空格 / 点击 = 击打 · Esc = 退出');
@@ -253,22 +290,20 @@ const Main = {
       zl.classList.add('hidden');
       zr.classList.add('hidden');
     }
-    // 触屏设备尝试进入全屏并锁定横屏（iOS Safari 不支持则静默失败，由 CSS 提示兜底）
+    // 2. 触屏设备尝试进入全屏（静默兜底，绝不影响音频与核心循环）
     if (this.isTouch) {
-      const el = document.documentElement;
-      const lock = () => {
+      try {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        }
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(() => {});
         }
-      };
-      if (el.requestFullscreen) {
-        el.requestFullscreen().then(lock).catch(lock);
-      } else {
-        lock();
-      }
+      } catch (e) {}
     }
-    AudioEngine.init();
-    AudioEngine.resume();
+
+    // 3. 启动关卡核心循环
     Game.start(lv, (stats) => this.showResult(stats), this.currentMode);
   },
 
@@ -302,4 +337,8 @@ const Main = {
   }
 };
 
-window.addEventListener('DOMContentLoaded', () => Main.init());
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => Main.init());
+} else {
+  Main.init();
+}
